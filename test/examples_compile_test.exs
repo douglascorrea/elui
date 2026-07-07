@@ -36,12 +36,24 @@ defmodule ExamplesCompileTest do
     widget-ref-container
   )
 
+  @native_examples ~w(
+    beam-lab
+  )
+
   test "every Ratatui app has a loadable Elui example" do
+    assert_examples_load(@ratatui_apps)
+  end
+
+  test "native Elui examples are loadable" do
+    assert_examples_load(@native_examples)
+  end
+
+  defp assert_examples_load(examples) do
     previous = System.get_env("ELUI_SKIP_EXAMPLE_RUN")
     System.put_env("ELUI_SKIP_EXAMPLE_RUN", "1")
 
     try do
-      for app <- @ratatui_apps do
+      for app <- examples do
         file = Path.expand("examples/#{String.replace(app, "-", "_")}.exs")
         assert File.exists?(file), "missing example for #{app}: #{file}"
         assert [{_module, _bytecode} | _] = Code.require_file(file)

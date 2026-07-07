@@ -104,6 +104,7 @@ points:
 | `popup.exs` | `mix run examples/popup.exs` | Clear + centered rect modal |
 | `user_input.exs` | `mix run examples/user_input.exs` | Text input with cursor placement |
 | `demo.exs` | `mix run examples/demo.exs` | Multi-tab tour of most widgets |
+| `beam_lab.exs` | `mix run examples/beam_lab.exs` | Supervisor tree, GenServers, BEAM nodes and an internet event stream |
 
 It also includes Elixir ports of every app under Ratatui's
 `examples/apps/` directory:

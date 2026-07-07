@@ -14,6 +14,7 @@ defmodule Elui.MixProject do
       description: "A terminal user interface (TUI) library for Elixir, inspired by ratatui",
       package: package(),
       docs: docs(),
+      homepage_url: @source_url,
       name: "Elui",
       source_url: @source_url
     ]
@@ -34,15 +35,30 @@ defmodule Elui.MixProject do
   defp package do
     [
       licenses: ["MIT"],
-      links: %{"GitHub" => @source_url},
-      files: ~w(lib examples mix.exs README.md)
+      maintainers: ["Douglas Correa"],
+      links: %{
+        "Changelog" => "#{@source_url}/blob/master/CHANGELOG.md",
+        "GitHub" => @source_url
+      },
+      files:
+        ~w(lib examples mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md SECURITY.md CODE_OF_CONDUCT.md SUPPORT.md)
     ]
   end
 
   defp docs do
     [
       main: "Elui",
-      extras: ["README.md"]
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      extras: [
+        "README.md",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "CODE_OF_CONDUCT.md",
+        "SUPPORT.md",
+        "LICENSE"
+      ]
     ]
   end
 end

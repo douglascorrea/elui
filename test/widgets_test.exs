@@ -188,4 +188,20 @@ defmodule Elui.WidgetsTest do
       assert "█" in lines
     end
   end
+
+  describe "Example widgets" do
+    test "hyperlink strips injected terminal controls from label and URL" do
+      line =
+        Elui.Examples.Widgets.Hyperlink.new(
+          "Docs\e]0;owned\a",
+          "https://example.test/\a?x=\e]0"
+        )
+        |> render(80, 1)
+        |> hd()
+
+      assert line =~ "\e]8;;https://example.test/?x=]0\aDocs]0;owned\e]8;;\a"
+      refute line =~ "\e]0;"
+      refute line =~ "https://example.test/\a?x"
+    end
+  end
 end

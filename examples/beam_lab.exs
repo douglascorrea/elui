@@ -8,7 +8,8 @@ Code.require_file("support/ratatui_port.exs", __DIR__)
 #
 # Optional remote-node companion, after pressing `n` in the UI:
 #
-#     iex --sname elui_peer --cookie elui_beam_lab -S mix
+#     # The UI prints the exact per-run cookie after you press `n`.
+#     iex --sname elui_peer --cookie <cookie-shown-in-ui> -S mix
 
 defmodule Examples.BeamLab.Supervisor do
   use Supervisor
@@ -83,7 +84,6 @@ end
 defmodule Examples.BeamLab.NodeServer do
   use GenServer
 
-  @cookie :elui_beam_lab
   @poll_interval 1_500
 
   def start_link(opts), do: GenServer.start_link(__MODULE__, opts)
@@ -94,6 +94,7 @@ defmodule Examples.BeamLab.NodeServer do
 
     state = %{
       app_pid: Keyword.fetch!(opts, :app_pid),
+      cookie: cookie(),
       local_name: :"elui_beam_lab_#{System.unique_integer([:positive])}",
       target: :"elui_peer@#{host}",
       last_action: "press n to start local distribution",
@@ -114,7 +115,7 @@ defmodule Examples.BeamLab.NodeServer do
 
     state =
       if Node.alive?() do
-        Node.set_cookie(state.target, @cookie)
+        Node.set_cookie(state.target, state.cookie)
 
         case Node.connect(state.target) do
           true ->
@@ -164,15 +165,25 @@ defmodule Examples.BeamLab.NodeServer do
     cond do
       Node.alive?() ->
         enable_node_monitor()
-        Node.set_cookie(@cookie)
-        %{state | last_action: "already running as #{Node.self()}", last_error: nil}
+        Node.set_cookie(state.cookie)
+
+        %{
+          state
+          | last_action: "already running as #{Node.self()} with cookie #{state.cookie}",
+            last_error: nil
+        }
 
       true ->
         with :ok <- start_epmd(),
              {:ok, _pid} <- Node.start(state.local_name, :shortnames) do
           enable_node_monitor()
-          Node.set_cookie(@cookie)
-          %{state | last_action: "started #{Node.self()} with cookie #{@cookie}", last_error: nil}
+          Node.set_cookie(state.cookie)
+
+          %{
+            state
+            | last_action: "started #{Node.self()} with cookie #{state.cookie}",
+              last_error: nil
+          }
         else
           {:error, reason} ->
             %{
@@ -195,9 +206,9 @@ defmodule Examples.BeamLab.NodeServer do
     %{
       alive?: Node.alive?(),
       self: Node.self(),
-      cookie: @cookie,
+      cookie: state.cookie,
       target: state.target,
-      command: "iex --sname elui_peer --cookie #{@cookie} -S mix",
+      command: "iex --sname elui_peer --cookie #{state.cookie} -S mix",
       connected: connected,
       known: safe_node_list(:known),
       remote_probe: remote_probe(state.target, connected),
@@ -234,6 +245,33 @@ defmodule Examples.BeamLab.NodeServer do
           {output, status} -> {:error, "epmd exited #{status}: #{String.trim(output)}"}
         end
     end
+  end
+
+  defp cookie do
+    case System.get_env("ELUI_BEAM_LAB_COOKIE") do
+      value when is_binary(value) ->
+        value = String.trim(value)
+
+        if Regex.match?(~r/^[A-Za-z0-9_]+$/, value) do
+          String.to_atom(value)
+        else
+          generated_cookie()
+        end
+
+      _ ->
+        generated_cookie()
+    end
+  end
+
+  defp generated_cookie do
+    :"elui_beam_lab_#{random_suffix()}"
+  end
+
+  defp random_suffix do
+    :crypto.strong_rand_bytes(4)
+    |> Base.encode16(case: :lower)
+  rescue
+    _ -> System.unique_integer([:positive]) |> Integer.to_string()
   end
 
   defp enable_node_monitor do
@@ -548,9 +586,9 @@ defmodule Examples.BeamLab do
   @blank_node %{
     alive?: false,
     self: :nonode@nohost,
-    cookie: :elui_beam_lab,
+    cookie: :pending,
     target: :unknown,
-    command: "iex --sname elui_peer --cookie elui_beam_lab -S mix",
+    command: "press n to generate a per-run cookie",
     connected: [],
     known: [],
     remote_probe: "not connected",

@@ -138,11 +138,19 @@ defmodule Elui.Examples.Widgets.Hyperlink do
     if area.width == 0 or area.height == 0 do
       buffer
     else
-      text = "\e]8;;#{link.url}\a#{link.text}\e]8;;\a"
-      x = area.x + max(div(area.width - Width.of(link.text), 2), 0)
+      label = strip_terminal_controls(link.text)
+      url = strip_terminal_controls(link.url)
+      text = "\e]8;;#{url}\a#{label}\e]8;;\a"
+      x = area.x + max(div(area.width - Width.of(label), 2), 0)
       y = area.y + div(area.height, 2)
       Buffer.put(buffer, x, y, Cell.new(text, Style.new(fg: :cyan, add_modifier: [:underlined])))
     end
+  end
+
+  defp strip_terminal_controls(value) do
+    value
+    |> to_string()
+    |> String.replace(~r/[\x00-\x1F\x7F]/u, "")
   end
 
   defimpl Elui.Widget do

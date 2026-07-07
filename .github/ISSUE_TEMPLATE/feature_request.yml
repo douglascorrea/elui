@@ -1,0 +1,36 @@
+name: Feature request
+description: Suggest an improvement or new API.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to build or improve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What would you like Elui to provide?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: What have you tried or considered?
+  - type: textarea
+    id: ratatui
+    attributes:
+      label: Ratatui reference
+      description: If Ratatui already has a similar concept, link to it or name it.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues.
+          required: true

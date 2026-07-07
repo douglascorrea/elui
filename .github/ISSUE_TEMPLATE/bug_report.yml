@@ -1,0 +1,66 @@
+name: Bug report
+description: Report something that is broken or surprising.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please include a small reproduction when possible.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Minimal code, command, or example steps.
+      render: elixir
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: elixir
+    attributes:
+      label: Elixir version
+      placeholder: "1.20.2"
+    validations:
+      required: true
+  - type: input
+    id: otp
+    attributes:
+      label: OTP version
+      placeholder: "29"
+    validations:
+      required: true
+  - type: input
+    id: terminal
+    attributes:
+      label: Terminal and OS
+      placeholder: "Ghostty on macOS, Windows Terminal on Windows, etc."
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues.
+          required: true
+        - label: This is not a security report.
+          required: true

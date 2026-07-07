@@ -3,6 +3,7 @@ defmodule Elui.MixProject do
 
   @version "0.1.0"
   @source_url "https://github.com/douglascorrea/elui"
+  @homepage_url "https://elui.sh"
 
   def project do
     [
@@ -14,7 +15,7 @@ defmodule Elui.MixProject do
       description: "A terminal user interface (TUI) library for Elixir, inspired by ratatui",
       package: package(),
       docs: docs(),
-      homepage_url: @source_url,
+      homepage_url: @homepage_url,
       name: "Elui",
       source_url: @source_url
     ]
@@ -38,7 +39,8 @@ defmodule Elui.MixProject do
       maintainers: ["Douglas Correa"],
       links: %{
         "Changelog" => "#{@source_url}/blob/master/CHANGELOG.md",
-        "GitHub" => @source_url
+        "GitHub" => @source_url,
+        "Website" => @homepage_url
       },
       files:
         ~w(lib examples mix.exs README.md LICENSE CHANGELOG.md CONTRIBUTING.md SECURITY.md CODE_OF_CONDUCT.md SUPPORT.md)

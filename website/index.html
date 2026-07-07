@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Elui - Terminal UIs for Elixir</title>
+    <meta
+      name="description"
+      content="Elui is a terminal UI library for Elixir, inspired by Ratatui. Build immediate-mode TUIs with OTP-friendly widgets, layouts, input, charts, and examples."
+    />
+    <meta property="og:title" content="Elui - Terminal UIs for Elixir" />
+    <meta
+      property="og:description"
+      content="Immediate-mode terminal UIs for Elixir and OTP, inspired by Ratatui."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://elui.sh" />
+    <meta name="theme-color" content="#10110d" />
+    <link rel="canonical" href="https://elui.sh" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="Elui home">
+        <span class="brand-mark">el</span>
+        <span class="brand-word">Elui</span>
+      </a>
+      <nav class="nav-links" aria-label="Site navigation">
+        <a href="#features">Features</a>
+        <a href="#examples">Examples</a>
+        <a href="#install">Install</a>
+        <a href="https://github.com/douglascorrea/elui">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section id="top" class="hero" aria-labelledby="hero-title">
+        <canvas id="hero-canvas" aria-hidden="true"></canvas>
+        <div class="hero-noise" aria-hidden="true"></div>
+        <div class="hero-shell" aria-label="Animated terminal preview">
+          <div class="terminal-window">
+            <div class="terminal-chrome">
+              <span></span>
+              <span></span>
+              <span></span>
+              <strong>elui/demo.exs</strong>
+            </div>
+            <pre aria-hidden="true"><code>┌Elui Runtime────────────────────────────┐
+│ Frame diff      812 changed cells      │
+│ Layout          vertical/fill/flex     │
+│ Input           keys + SGR mouse       │
+│ Process         {:message, payload}    │
+├────────────────────────────────────────┤
+│ supervisors  ████████░░ 80%            │
+│ widgets      █████████░ 90%            │
+│ examples     ██████████ 100%           │
+└────────────────────────────────────────┘</code></pre>
+          </div>
+        </div>
+
+        <div class="hero-content">
+          <p class="eyebrow">Immediate-mode terminal UIs for Elixir</p>
+          <h1 id="hero-title">Build TUIs that feel native to the BEAM.</h1>
+          <p class="hero-copy">
+            Elui brings Ratatui-shaped rendering, layout, input, and widgets to
+            Elixir, with an app loop that plays nicely with supervisors,
+            GenServers, messages, and long-running systems.
+          </p>
+          <div class="hero-actions" aria-label="Primary actions">
+            <a class="button button-primary" href="#install">Install</a>
+            <a class="button button-secondary" href="#examples">Watch examples</a>
+          </div>
+          <dl class="hero-stats" aria-label="Project highlights">
+            <div>
+              <dt>30+</dt>
+              <dd>Ratatui app ports</dd>
+            </div>
+            <div>
+              <dt>OTP</dt>
+              <dd>message-driven loop</dd>
+            </div>
+            <div>
+              <dt>Test</dt>
+              <dd>backend snapshots</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="intro-band" aria-label="Library summary">
+        <p>
+          Rebuild the interface from state, render into a buffer, and let Elui
+          flush the diff. Use it for developer tools, operational dashboards,
+          terminal workbenches, and live OTP experiments.
+        </p>
+      </section>
+
+      <section id="features" class="section feature-section" aria-labelledby="features-title">
+        <div class="section-kicker">Why Elui</div>
+        <div class="section-heading">
+          <h2 id="features-title">Ratatui ideas, Elixir instincts.</h2>
+          <p>
+            Elui keeps the immediate-mode model clear while letting your runtime
+            stay unmistakably Elixir: processes talk, widgets render, tests
+            assert on buffers.
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-panel">
+            <span class="panel-index">01</span>
+            <h3>Immediate frames</h3>
+            <p>
+              Compose each frame from current state with `Elui.Terminal` and
+              `Elui.Frame`; the backend writes only changed cells.
+            </p>
+          </article>
+          <article class="feature-panel">
+            <span class="panel-index">02</span>
+            <h3>OTP-friendly events</h3>
+            <p>
+              `Elui.App` handles keys, mouse events, ticks, terminal resizes,
+              and arbitrary process messages in one model update function.
+            </p>
+          </article>
+          <article class="feature-panel">
+            <span class="panel-index">03</span>
+            <h3>Widgets with shape</h3>
+            <p>
+              Blocks, paragraphs, lists, tables, tabs, gauges, charts, canvas,
+              calendars, scrollbars, sparklines, and bar charts.
+            </p>
+          </article>
+          <article class="feature-panel">
+            <span class="panel-index">04</span>
+            <h3>Assertable output</h3>
+            <p>
+              Render with `Elui.Backend.Test` and assert on plain lines without
+              needing a real terminal in CI.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="examples" class="section examples-section" aria-labelledby="examples-title">
+        <div class="section-kicker">Examples</div>
+        <div class="section-heading">
+          <h2 id="examples-title">A gallery waiting for real terminal footage.</h2>
+          <p>
+            Each slot is ready for a video capture of the matching example app.
+            Drop in recordings as the demos become part of the public story.
+          </p>
+        </div>
+
+        <div class="example-grid">
+          <article class="example-card">
+            <div class="video-slot" data-demo="demo">
+              <span>Video slot</span>
+              <strong>demo.exs</strong>
+            </div>
+            <h3>Widget Tour</h3>
+            <p>A guided sweep through the core widgets and styling surface.</p>
+          </article>
+          <article class="example-card">
+            <div class="video-slot" data-demo="beam">
+              <span>Video slot</span>
+              <strong>beam_lab.exs</strong>
+            </div>
+            <h3>BEAM Lab</h3>
+            <p>Supervisors, GenServers, nodes, remote probes, and GitHub events.</p>
+          </article>
+          <article class="example-card">
+            <div class="video-slot" data-demo="calendar">
+              <span>Video slot</span>
+              <strong>calendar_explorer.exs</strong>
+            </div>
+            <h3>Calendar Explorer</h3>
+            <p>Navigation and style changes rendered in a compact TUI surface.</p>
+          </article>
+          <article class="example-card">
+            <div class="video-slot" data-demo="mouse">
+              <span>Video slot</span>
+              <strong>mouse_drawing.exs</strong>
+            </div>
+            <h3>Mouse Drawing</h3>
+            <p>Continuous terminal drawing with SGR mouse input.</p>
+          </article>
+          <article class="example-card">
+            <div class="video-slot" data-demo="flex">
+              <span>Video slot</span>
+              <strong>flex.exs</strong>
+            </div>
+            <h3>Flex Layout</h3>
+            <p>Ratatui-style flex alignment, fills, constraints, and scrolling.</p>
+          </article>
+          <article class="example-card">
+            <div class="video-slot" data-demo="github">
+              <span>Video slot</span>
+              <strong>async_github.exs</strong>
+            </div>
+            <h3>Async GitHub</h3>
+            <p>Fetch and scroll recent Elixir repository commits from the terminal.</p>
+          </article>
+        </div>
+
+        <div class="example-library" aria-label="Full example video queue">
+          <h3>Full video queue</h3>
+          <div class="mini-example-grid">
+            <span>advanced_widget_impl</span>
+            <span>async_github</span>
+            <span>beam_lab</span>
+            <span>calendar_explorer</span>
+            <span>canvas</span>
+            <span>chart</span>
+            <span>color_explorer</span>
+            <span>colors_rgb</span>
+            <span>constraint_explorer</span>
+            <span>constraints</span>
+            <span>custom_widget</span>
+            <span>demo</span>
+            <span>demo2</span>
+            <span>flex</span>
+            <span>gauge</span>
+            <span>hello_world</span>
+            <span>hyperlink</span>
+            <span>inline</span>
+            <span>input_form</span>
+            <span>minimal</span>
+            <span>modifiers</span>
+            <span>mouse_drawing</span>
+            <span>panic</span>
+            <span>popup</span>
+            <span>release_header</span>
+            <span>scrollbar</span>
+            <span>table</span>
+            <span>todo_list</span>
+            <span>tracing</span>
+            <span>user_input</span>
+            <span>volatility_surface</span>
+            <span>weather</span>
+            <span>widget_ref_container</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="install" class="section install-section" aria-labelledby="install-title">
+        <div class="install-copy">
+          <div class="section-kicker">Install</div>
+          <h2 id="install-title">Start from GitHub, move to Hex when published.</h2>
+          <p>
+            Elui is early-stage. Today, install directly from the repository.
+            The package metadata is already ready for the first Hex release.
+          </p>
+        </div>
+        <div class="code-stack" aria-label="Installation commands">
+          <pre><code>def deps do
+  [
+    {:elui, github: "douglascorrea/elui"}
+  ]
+end</code></pre>
+          <pre><code>mix deps.get
+mix run examples/demo.exs</code></pre>
+        </div>
+      </section>
+
+      <section class="section map-section" aria-labelledby="map-title">
+        <div class="section-kicker">Mental model</div>
+        <h2 id="map-title">Ratatui vocabulary, Elixir modules.</h2>
+        <div class="concept-map" role="list">
+          <div role="listitem"><span>Terminal / Frame</span><strong>Elui.Terminal / Elui.Frame</strong></div>
+          <div role="listitem"><span>Buffer / Cell</span><strong>Elui.Buffer / Cell</strong></div>
+          <div role="listitem"><span>Layout / Constraint</span><strong>Elui.Layout</strong></div>
+          <div role="listitem"><span>Widget trait</span><strong>Elui.Widget protocol</strong></div>
+          <div role="listitem"><span>Events</span><strong>Elui.Input + Elui.App</strong></div>
+          <div role="listitem"><span>Test backend</span><strong>Elui.Backend.Test</strong></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <strong>Elui</strong>
+        <span>Terminal UIs for Elixir and OTP.</span>
+      </div>
+      <nav aria-label="Footer navigation">
+        <a href="https://github.com/douglascorrea/elui">GitHub</a>
+        <a href="https://hexdocs.pm/elui">HexDocs</a>
+        <a href="#top">Back to top</a>
+      </nav>
+    </footer>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

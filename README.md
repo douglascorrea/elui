@@ -3,6 +3,8 @@
 Elui is a terminal user interface library for Elixir, inspired by
 [Ratatui](https://github.com/ratatui/ratatui).
 
+Website: [elui.sh](https://elui.sh)
+
 It gives Elixir projects an immediate-mode TUI toolkit: rebuild the UI from
 your current state on every frame, render widgets into a buffer, and let the
 terminal backend write only the changed cells.

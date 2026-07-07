@@ -18,6 +18,8 @@ versioning once published.
   remote-node connection, and streamed GitHub events.
 - Open-source project files: README, license, contributing guide, security
   policy, support guide, code of conduct, issue templates, PR template, and CI.
+- Static project website under `website/`, including a GitHub Pages workflow
+  and `elui.sh` custom-domain file.
 
 ### Security
 

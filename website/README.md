@@ -13,15 +13,14 @@ custom domain.
 
 ## DNS
 
-GitHub Pages is configured with the custom domain `elui.sh`. Namecheap still
-needs DNS records before the domain resolves:
+GitHub Pages is configured with the custom domain `elui.sh`. Namecheap is
+configured with:
 
 | Type | Host | Value |
 | --- | --- | --- |
-| `A` | `@` | `185.199.108.153` |
-| `A` | `@` | `185.199.109.153` |
-| `A` | `@` | `185.199.110.153` |
-| `A` | `@` | `185.199.111.153` |
+| `ALIAS` | `@` | `douglascorrea.github.io` |
 | `CNAME` | `www` | `douglascorrea.github.io` |
 
+GitHub Pages also supports apex `A` records, but this domain uses Namecheap's
+`ALIAS` record for the apex because it tracks the GitHub Pages target directly.
 After DNS propagates, GitHub can enforce HTTPS for `https://elui.sh`.

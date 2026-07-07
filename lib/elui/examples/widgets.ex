@@ -150,3 +150,73 @@ defmodule Elui.Examples.Widgets.Hyperlink do
       do: Elui.Examples.Widgets.Hyperlink.render_into(link, area, buffer)
   end
 end
+
+defmodule Elui.Examples.Widgets.MouseDrawingSurface do
+  @moduledoc false
+
+  alias Elui.Buffer
+  alias Elui.Buffer.Cell
+  alias Elui.Layout.Rect
+  alias Elui.Style
+  alias Elui.Text.{Line, Width}
+
+  defstruct points: [],
+            mouse_position: nil,
+            current_color: :cyan,
+            title: ""
+
+  def new(opts \\ []) do
+    %__MODULE__{
+      points: Keyword.get(opts, :points, []),
+      mouse_position: Keyword.get(opts, :mouse_position),
+      current_color: Keyword.get(opts, :current_color, :cyan),
+      title: Keyword.get(opts, :title, "")
+    }
+  end
+
+  def render_into(%__MODULE__{} = surface, area, buffer) do
+    buffer =
+      Enum.reduce(surface.points, buffer, fn {{x, y}, color}, acc ->
+        if Rect.contains?(area, {x, y}) do
+          Buffer.put(acc, x, y, Cell.new("█", Style.new(fg: color)))
+        else
+          acc
+        end
+      end)
+
+    buffer =
+      case surface.mouse_position do
+        {x, y} ->
+          if Rect.contains?(area, {x, y}) do
+            Buffer.put(
+              buffer,
+              x,
+              y,
+              Cell.new("╳", Style.new(fg: :black, bg: surface.current_color))
+            )
+          else
+            buffer
+          end
+
+        nil ->
+          buffer
+      end
+
+    render_title(buffer, area, surface.title)
+  end
+
+  defp render_title(buffer, _area, ""), do: buffer
+
+  defp render_title(buffer, area, title) do
+    line = Line.new(title, style: [fg: :white, add_modifier: [:bold]], alignment: :center)
+    width = Width.of(title)
+    x = area.x + max(div(area.width - width, 2), 0)
+    {buffer, _} = Buffer.set_line(buffer, x, area.y, line, min(width, area.width))
+    buffer
+  end
+
+  defimpl Elui.Widget do
+    def render(surface, area, buffer),
+      do: Elui.Examples.Widgets.MouseDrawingSurface.render_into(surface, area, buffer)
+  end
+end

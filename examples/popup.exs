@@ -1,3 +1,5 @@
+Code.require_file("support/ratatui_port.exs", __DIR__)
+
 # Popup example: Clear + a centered rect to draw a modal over content.
 #
 # Run with:
@@ -51,4 +53,4 @@ defmodule Examples.Popup do
   end
 end
 
-Elui.App.run(Examples.Popup)
+Examples.Support.run(Examples.Popup)

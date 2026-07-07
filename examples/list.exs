@@ -1,3 +1,5 @@
+Code.require_file("support/ratatui_port.exs", __DIR__)
+
 # List example: a selectable, scrollable list with a scrollbar.
 #
 # Run with:
@@ -71,4 +73,4 @@ defmodule Examples.List do
   end
 end
 
-Elui.App.run(Examples.List)
+Examples.Support.run(Examples.List)

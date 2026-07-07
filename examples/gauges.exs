@@ -1,3 +1,5 @@
+Code.require_file("support/ratatui_port.exs", __DIR__)
+
 # Gauges example: Gauge, LineGauge, Sparkline and BarChart animating
 # on the tick event.
 #
@@ -71,4 +73,4 @@ defmodule Examples.Gauges do
   end
 end
 
-Elui.App.run(Examples.Gauges, tick_rate: 100)
+Examples.Support.run(Examples.Gauges, tick_rate: 100)

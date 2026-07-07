@@ -1,3 +1,5 @@
+Code.require_file("support/ratatui_port.exs", __DIR__)
+
 # Demo: a multi-tab tour of most Elui widgets, similar in spirit to
 # ratatui's demo example.
 #
@@ -180,4 +182,4 @@ defmodule Examples.Demo do
   end
 end
 
-Elui.App.run(Examples.Demo, tick_rate: 100)
+Examples.Support.run(Examples.Demo, tick_rate: 100)

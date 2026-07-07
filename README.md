@@ -88,7 +88,9 @@ Elui.Terminal.restore(terminal)
 
 ## Examples
 
-The [`examples/`](examples/) directory contains runnable programs:
+The [`examples/`](examples/) directory contains runnable programs. The
+original Elui examples are still useful as small widget-focused entry
+points:
 
 | Example | Run with | Shows |
 | --- | --- | --- |
@@ -102,6 +104,44 @@ The [`examples/`](examples/) directory contains runnable programs:
 | `popup.exs` | `mix run examples/popup.exs` | Clear + centered rect modal |
 | `user_input.exs` | `mix run examples/user_input.exs` | Text input with cursor placement |
 | `demo.exs` | `mix run examples/demo.exs` | Multi-tab tour of most widgets |
+
+It also includes Elixir ports of every app under Ratatui's
+`examples/apps/` directory:
+
+| Ratatui app | Elui example |
+| --- | --- |
+| `advanced-widget-impl` | `examples/advanced_widget_impl.exs` |
+| `async-github` | `examples/async_github.exs` |
+| `calendar-explorer` | `examples/calendar_explorer.exs` |
+| `canvas` | `examples/canvas.exs` |
+| `chart` | `examples/chart.exs` |
+| `color-explorer` | `examples/color_explorer.exs` |
+| `colors-rgb` | `examples/colors_rgb.exs` |
+| `constraint-explorer` | `examples/constraint_explorer.exs` |
+| `constraints` | `examples/constraints.exs` |
+| `custom-widget` | `examples/custom_widget.exs` |
+| `demo` | `examples/demo.exs` |
+| `demo2` | `examples/demo2.exs` |
+| `flex` | `examples/flex.exs` |
+| `gauge` | `examples/gauge.exs` |
+| `hello-world` | `examples/hello_world.exs` |
+| `hyperlink` | `examples/hyperlink.exs` |
+| `inline` | `examples/inline.exs` |
+| `input-form` | `examples/input_form.exs` |
+| `minimal` | `examples/minimal.exs` |
+| `modifiers` | `examples/modifiers.exs` |
+| `mouse-drawing` | `examples/mouse_drawing.exs` |
+| `panic` | `examples/panic.exs` |
+| `popup` | `examples/popup.exs` |
+| `release-header` | `examples/release_header.exs` |
+| `scrollbar` | `examples/scrollbar.exs` |
+| `table` | `examples/table.exs` |
+| `todo-list` | `examples/todo_list.exs` |
+| `tracing` | `examples/tracing.exs` |
+| `user-input` | `examples/user_input.exs` |
+| `volatility-surface` | `examples/volatility_surface.exs` |
+| `weather` | `examples/weather.exs` |
+| `widget-ref-container` | `examples/widget_ref_container.exs` |
 
 ## Feature map (ratatui → Elui)
 
@@ -129,12 +169,8 @@ The [`examples/`](examples/) directory contains runnable programs:
 | `Scrollbar` / `ScrollbarState` | `Elui.Widgets.Scrollbar` / `.State` |
 | `Clear` | `Elui.Widgets.Clear` |
 | `symbols` module | `Elui.Symbols` |
-| crossterm key events | `Elui.Input` (raw mode + parsed key events) |
-| hand-written event loop | `Elui.App` behaviour (optional) |
-
-Not ported: the world-map canvas shape (large embedded dataset) and
-mouse capture. Everything else from ratatui's core widget set is
-available.
+| crossterm key and mouse events | `Elui.Input` (raw mode, parsed key events and SGR mouse capture) |
+| hand-written event loop | `Elui.App` behaviour (optional), including tick, resize and app message events |
 
 ## Concepts
 

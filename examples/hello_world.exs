@@ -1,3 +1,5 @@
+Code.require_file("support/ratatui_port.exs", __DIR__)
+
 # Hello world: the smallest possible Elui application.
 #
 # Run with:
@@ -31,4 +33,4 @@ defmodule Examples.HelloWorld do
   end
 end
 
-Elui.App.run(Examples.HelloWorld)
+Examples.Support.run(Examples.HelloWorld)

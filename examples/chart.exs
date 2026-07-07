@@ -1,3 +1,5 @@
+Code.require_file("support/ratatui_port.exs", __DIR__)
+
 # Chart example: line and scatter datasets over animated data.
 #
 # Run with:
@@ -51,4 +53,4 @@ defmodule Examples.Chart do
   end
 end
 
-Elui.App.run(Examples.Chart, tick_rate: 100)
+Examples.Support.run(Examples.Chart, tick_rate: 100)

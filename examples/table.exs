@@ -1,3 +1,5 @@
+Code.require_file("support/ratatui_port.exs", __DIR__)
+
 # Table example: header, constraint-based column widths and row selection.
 #
 # Run with:
@@ -56,4 +58,4 @@ defmodule Examples.Table do
   end
 end
 
-Elui.App.run(Examples.Table)
+Examples.Support.run(Examples.Table)

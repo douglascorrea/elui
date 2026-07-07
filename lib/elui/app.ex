@@ -34,7 +34,9 @@ defmodule Elui.App do
 
     * `{:key, key, modifiers}` - see `Elui.Input`
     * `:tick` - emitted every `:tick_rate` milliseconds
-    * `{:resize, width, height}` - terminal was resized
+    * `{:resize, width, height}` - terminal size at startup or after a resize
+    * `{:mouse, kind, x, y, modifiers}` - mouse input when `:mouse` is enabled
+    * `{:message, message}` - any non-input message sent to the app process
   """
 
   alias Elui.Frame
@@ -43,7 +45,11 @@ defmodule Elui.App do
 
   @type model :: term()
   @type event ::
-          {:key, term(), [atom()]} | :tick | {:resize, non_neg_integer(), non_neg_integer()}
+          {:key, term(), [atom()]}
+          | {:mouse, term(), non_neg_integer(), non_neg_integer(), [atom()]}
+          | :tick
+          | {:resize, non_neg_integer(), non_neg_integer()}
+          | {:message, term()}
 
   @doc "Builds the initial model."
   @callback init(Keyword.t()) :: model()
@@ -64,21 +70,29 @@ defmodule Elui.App do
 
     * `:tick_rate` - milliseconds between `:tick` events (default 250)
     * `:terminal` - options forwarded to `Elui.Terminal.new/1`
+    * `:mouse` - enables SGR mouse capture while the app runs (default `false`)
 
   Returns the final model.
   """
   @spec run(module(), Keyword.t()) :: model()
   def run(module, opts \\ []) do
     tick_rate = Keyword.get(opts, :tick_rate, 250)
+    mouse? = Keyword.get(opts, :mouse, false)
     terminal = Terminal.new(Keyword.get(opts, :terminal, []))
-    Input.start(self())
+    Input.start(self(), mouse: mouse?)
 
     model = module.init(opts)
+    area = Terminal.area(terminal)
 
     try do
-      loop(module, model, terminal, tick_rate)
+      case module.update(model, {:resize, area.width, area.height}) do
+        {:ok, model} -> loop(module, model, terminal, tick_rate)
+        :quit -> model
+        {:quit, model} -> model
+      end
     after
       Terminal.restore(terminal)
+      if mouse?, do: Input.disable_mouse_capture()
       Input.disable_raw_mode()
     end
   end
@@ -90,6 +104,7 @@ defmodule Elui.App do
     event =
       receive do
         {:elui_event, event} -> event
+        message -> {:message, message}
       after
         tick_rate -> :tick
       end

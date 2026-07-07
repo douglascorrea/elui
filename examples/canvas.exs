@@ -1,4 +1,6 @@
-# Canvas example: shapes drawn with the braille marker and a ball
+Code.require_file("support/ratatui_port.exs", __DIR__)
+
+# Canvas example: world-outline polylines, primitive shapes and a ball
 # bouncing around the area.
 #
 # Run with:
@@ -44,6 +46,7 @@ defmodule Examples.Canvas do
         block: Block.bordered(title: "Canvas", title_bottom: "q to quit"),
         paint: fn ctx ->
           ctx
+          |> draw_world()
           |> Context.draw(%Shapes.Rectangle{x: 5.0, y: 5.0, width: 90.0, height: 90.0, color: :green})
           |> Context.draw(%Shapes.Line{x1: 5.0, y1: 5.0, x2: 95.0, y2: 95.0, color: :dark_gray})
           |> Context.draw(%Shapes.Line{x1: 5.0, y1: 95.0, x2: 95.0, y2: 5.0, color: :dark_gray})
@@ -54,6 +57,24 @@ defmodule Examples.Canvas do
 
     Frame.render_widget(frame, canvas, Frame.area(frame))
   end
+
+  defp draw_world(ctx) do
+    [
+      [{12, 66}, {18, 78}, {28, 76}, {33, 64}, {28, 48}, {22, 38}, {24, 20}, {31, 11}],
+      [{42, 69}, {54, 76}, {70, 70}, {82, 60}, {77, 47}, {63, 48}, {55, 38}, {47, 45}],
+      [{52, 42}, {60, 34}, {62, 22}, {55, 12}, {48, 25}, {46, 36}, {52, 42}],
+      [{74, 30}, {82, 33}, {89, 25}, {85, 16}, {75, 18}, {72, 25}, {74, 30}]
+    ]
+    |> Enum.reduce(ctx, fn points, acc -> draw_polyline(acc, points, :cyan) end)
+  end
+
+  defp draw_polyline(ctx, points, color) do
+    points
+    |> Enum.chunk_every(2, 1, :discard)
+    |> Enum.reduce(ctx, fn [{x1, y1}, {x2, y2}], acc ->
+      Context.draw(acc, %Shapes.Line{x1: x1, y1: y1, x2: x2, y2: y2, color: color})
+    end)
+  end
 end
 
-Elui.App.run(Examples.Canvas, tick_rate: 50)
+Examples.Support.run(Examples.Canvas, tick_rate: 50)

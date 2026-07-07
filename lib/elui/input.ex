@@ -17,6 +17,13 @@ defmodule Elui.Input do
 
   and `modifiers` is a list that may contain `:ctrl` and `:alt`.
 
+  When mouse capture is enabled, mouse events are delivered as:
+
+      {:elui_event, {:mouse, kind, x, y, modifiers}}
+
+  where `kind` is `{:down, button}`, `{:up, button}`, `{:drag, button}`,
+  `:move`, `:scroll_up` or `:scroll_down`. Coordinates are zero-based.
+
   This plays the role of ratatui's event backends (crossterm events).
   """
 
@@ -24,9 +31,10 @@ defmodule Elui.Input do
   Enables raw mode and starts reading keys, sending events to
   `subscriber`. Returns the reader pid.
   """
-  @spec start(pid()) :: pid()
-  def start(subscriber \\ self()) do
+  @spec start(pid(), Keyword.t()) :: pid()
+  def start(subscriber \\ self(), opts \\ []) do
     enable_raw_mode()
+    if Keyword.get(opts, :mouse, false), do: enable_mouse_capture()
     parser = spawn_link(fn -> parse_loop(subscriber, []) end)
     spawn_link(fn -> read_loop(parser) end)
   end
@@ -52,6 +60,24 @@ defmodule Elui.Input do
     _ -> stty(["-raw", "echo"])
   catch
     _, _ -> stty(["-raw", "echo"])
+  end
+
+  @doc "Enables SGR mouse capture for terminals that support it."
+  @spec enable_mouse_capture() :: :ok
+  def enable_mouse_capture do
+    IO.write(:stdio, "\e[?1000h\e[?1002h\e[?1003h\e[?1006h")
+    :ok
+  rescue
+    _ -> :ok
+  end
+
+  @doc "Disables mouse capture modes enabled by `enable_mouse_capture/0`."
+  @spec disable_mouse_capture() :: :ok
+  def disable_mouse_capture do
+    IO.write(:stdio, "\e[?1006l\e[?1003l\e[?1002l\e[?1000l")
+    :ok
+  rescue
+    _ -> :ok
   end
 
   defp stty(args) do
@@ -148,7 +174,7 @@ defmodule Elui.Input do
   defp take_csi([], _params), do: :incomplete
 
   defp take_csi([ch | rest], params) do
-    if ch =~ ~r/[0-9;]/ do
+    if ch =~ ~r/[0-9;<]/ do
       take_csi(rest, params <> ch)
     else
       {:ok, csi_event(ch, params), rest}
@@ -162,6 +188,16 @@ defmodule Elui.Input do
   defp csi_event("H", _), do: {:key, :home, []}
   defp csi_event("F", _), do: {:key, :end, []}
   defp csi_event("Z", _), do: {:key, :back_tab, []}
+
+  defp csi_event(final, "<" <> params) when final in ["M", "m"] do
+    case parse_mouse_params(params) do
+      {:ok, code, x, y} ->
+        {:mouse, mouse_kind(code, final), max(x - 1, 0), max(y - 1, 0), mouse_modifiers(code)}
+
+      :error ->
+        {:key, {:unknown_csi, final}, []}
+    end
+  end
 
   defp csi_event("~", params) do
     key =
@@ -193,6 +229,54 @@ defmodule Elui.Input do
   end
 
   defp csi_event(final, _params), do: {:key, {:unknown_csi, final}, []}
+
+  defp parse_mouse_params(params) do
+    case String.split(params, ";") do
+      [code, x, y] ->
+        with {code, ""} <- Integer.parse(code),
+             {x, ""} <- Integer.parse(x),
+             {y, ""} <- Integer.parse(y) do
+          {:ok, code, x, y}
+        else
+          _ -> :error
+        end
+
+      _ ->
+        :error
+    end
+  end
+
+  defp mouse_kind(code, "m"), do: {:up, mouse_button(code)}
+
+  defp mouse_kind(code, "M") do
+    cond do
+      Bitwise.band(code, 64) == 64 and rem(code, 2) == 0 -> :scroll_up
+      Bitwise.band(code, 64) == 64 -> :scroll_down
+      Bitwise.band(code, 32) == 32 and rem(code, 4) == 3 -> :move
+      Bitwise.band(code, 32) == 32 -> {:drag, mouse_button(code)}
+      true -> {:down, mouse_button(code)}
+    end
+  end
+
+  defp mouse_button(code) do
+    case rem(code, 4) do
+      0 -> :left
+      1 -> :middle
+      2 -> :right
+      _ -> :none
+    end
+  end
+
+  defp mouse_modifiers(code) do
+    []
+    |> maybe_modifier(code, 4, :shift)
+    |> maybe_modifier(code, 8, :alt)
+    |> maybe_modifier(code, 16, :ctrl)
+  end
+
+  defp maybe_modifier(mods, code, bit, modifier) do
+    if Bitwise.band(code, bit) == bit, do: [modifier | mods], else: mods
+  end
 
   # Single characters and control codes.
   defp parse_single(ch) do

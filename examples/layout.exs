@@ -1,3 +1,5 @@
+Code.require_file("support/ratatui_port.exs", __DIR__)
+
 # Layout example: constraints, nested splits, flex modes and spacing.
 #
 # Run with:
@@ -50,4 +52,4 @@ defmodule Examples.Layout do
   end
 end
 
-Elui.App.run(Examples.Layout)
+Examples.Support.run(Examples.Layout)

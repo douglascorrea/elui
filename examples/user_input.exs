@@ -1,3 +1,5 @@
+Code.require_file("support/ratatui_port.exs", __DIR__)
+
 # User input example: a text field with cursor handling and a message
 # history, in the spirit of ratatui's user-input example.
 #
@@ -92,4 +94,4 @@ defmodule Examples.UserInput do
   end
 end
 
-Elui.App.run(Examples.UserInput)
+Examples.Support.run(Examples.UserInput)

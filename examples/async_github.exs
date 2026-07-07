@@ -17,16 +17,21 @@ defmodule Examples.AsyncGithub do
 
   @repo "elixir-lang/elixir"
   @commits_url "https://api.github.com/repos/#{@repo}/commits?per_page=20"
+  @http_otp_apps [:asn1, :crypto, :public_key, :ssl, :inets]
 
   @impl true
   def init(_opts) do
     parent = self()
 
-    Task.start(fn ->
-      send(parent, {:github_commits, fetch_commits()})
-    end)
+    spawn(fn -> send(parent, {:github_commits, safe_fetch_commits()}) end)
 
-    %{status: :loading, spinner: 0, commits: [], error: nil, table_state: Table.State.new(selected: 0)}
+    %{
+      status: :loading,
+      spinner: 0,
+      commits: [],
+      error: nil,
+      table_state: Table.State.new(selected: 0)
+    }
   end
 
   @impl true
@@ -36,10 +41,15 @@ defmodule Examples.AsyncGithub do
         :quit
 
       Examples.Support.key?(event, [:down, {:char, "j"}]) ->
-        {:ok, %{model | table_state: Table.State.select_next(model.table_state, length(model.commits))}}
+        {:ok,
+         %{model | table_state: Table.State.select_next(model.table_state, length(model.commits))}}
 
       Examples.Support.key?(event, [:up, {:char, "k"}]) ->
-        {:ok, %{model | table_state: Table.State.select_previous(model.table_state, length(model.commits))}}
+        {:ok,
+         %{
+           model
+           | table_state: Table.State.select_previous(model.table_state, length(model.commits))
+         }}
 
       event == :tick ->
         {:ok, %{model | spinner: rem(model.spinner + 1, 4)}}
@@ -98,7 +108,11 @@ defmodule Examples.AsyncGithub do
           )
       end
 
-    Examples.Support.render_footer(frame, footer, "#{@commits_url} · background task -> app message")
+    Examples.Support.render_footer(
+      frame,
+      footer,
+      "#{@commits_url} · background task -> app message"
+    )
   end
 
   defp render_table(frame, area, model) do
@@ -130,11 +144,61 @@ defmodule Examples.AsyncGithub do
     end
   end
 
+  defp safe_fetch_commits do
+    fetch_commits()
+  rescue
+    exception ->
+      {:error, Exception.message(exception)}
+  catch
+    kind, reason ->
+      {:error, format_error({kind, reason})}
+  end
+
   defp ensure_http_started do
-    with {:ok, _} <- Application.ensure_all_started(:inets),
+    with :ok <- ensure_otp_app_code_paths(@http_otp_apps),
+         {:ok, _} <- Application.ensure_all_started(:inets),
          {:ok, _} <- Application.ensure_all_started(:ssl) do
       :ok
     end
+  end
+
+  defp ensure_otp_app_code_paths(apps) do
+    Enum.reduce_while(apps, :ok, fn app, :ok ->
+      case ensure_otp_app_code_path(app) do
+        :ok -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp ensure_otp_app_code_path(app) do
+    with {:ok, ebin_dir} <- otp_app_ebin_dir(app) do
+      case :code.add_patha(ebin_dir) do
+        true -> :ok
+        {:error, reason} -> {:error, "could not load #{app} code path: #{inspect(reason)}"}
+      end
+    end
+  end
+
+  defp otp_app_ebin_dir(app) do
+    case :code.lib_dir(app) do
+      lib_dir when is_list(lib_dir) ->
+        {:ok, :filename.join(lib_dir, ~c"ebin")}
+
+      {:error, _reason} ->
+        app
+        |> otp_app_ebin_dir_pattern()
+        |> Path.wildcard()
+        |> Enum.sort(:desc)
+        |> case do
+          [ebin_dir | _] -> {:ok, String.to_charlist(ebin_dir)}
+          [] -> {:error, "could not find #{app} code path"}
+        end
+    end
+  end
+
+  defp otp_app_ebin_dir_pattern(app) do
+    Path.join([to_string(:code.lib_dir()), "#{app}-*", "ebin"])
   end
 
   defp request_commits do
@@ -143,7 +207,7 @@ defmodule Examples.AsyncGithub do
       {~c"accept", ~c"application/vnd.github+json"}
     ]
 
-    case :httpc.request(
+    case safe_http_request(
            :get,
            {String.to_charlist(@commits_url), headers},
            [timeout: 10_000],
@@ -160,9 +224,22 @@ defmodule Examples.AsyncGithub do
     end
   end
 
+  defp safe_http_request(method, request, http_options, options) do
+    :httpc.request(method, request, http_options, options)
+  rescue
+    exception ->
+      {:error, Exception.message(exception)}
+  catch
+    kind, reason ->
+      {:error, {kind, reason}}
+  end
+
   defp commit_row(%{"sha" => sha, "commit" => commit} = payload) do
     details = commit || %{}
-    author = get_in(details, ["author", "name"]) || get_in(payload, ["author", "login"]) || "unknown"
+
+    author =
+      get_in(details, ["author", "name"]) || get_in(payload, ["author", "login"]) || "unknown"
+
     date = details |> get_in(["author", "date"]) |> format_date()
     message = details |> Map.get("message", "") |> first_line()
 
@@ -187,6 +264,10 @@ defmodule Examples.AsyncGithub do
   end
 
   defp format_error(reason) when is_binary(reason), do: reason
+
+  defp format_error({kind, reason}) when kind in [:error, :exit, :throw],
+    do: "#{kind}: #{inspect(reason)}"
+
   defp format_error(reason), do: inspect(reason)
 end
 

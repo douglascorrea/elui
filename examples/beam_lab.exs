@@ -90,13 +90,24 @@ defmodule Examples.BeamLab.NodeServer do
 
   @impl true
   def init(opts) do
-    host = hostname()
+    {host, name_type, name_flag} = node_identity()
+    local_base = "elui_beam_lab_#{System.unique_integer([:positive])}"
+
+    local_name =
+      if name_type == :longnames,
+        do: String.to_atom("#{local_base}@#{host}"),
+        else: String.to_atom(local_base)
+
+    peer_name = if name_type == :longnames, do: "elui_peer@#{host}", else: "elui_peer"
+    cookie = cookie()
 
     state = %{
       app_pid: Keyword.fetch!(opts, :app_pid),
-      cookie: cookie(),
-      local_name: :"elui_beam_lab_#{System.unique_integer([:positive])}",
+      cookie: cookie,
+      local_name: local_name,
+      name_type: name_type,
       target: :"elui_peer@#{host}",
+      command: "iex #{name_flag} #{peer_name} --cookie #{cookie} -S mix",
       last_action: "press n to start local distribution",
       last_error: nil
     }
@@ -175,7 +186,7 @@ defmodule Examples.BeamLab.NodeServer do
 
       true ->
         with :ok <- start_epmd(),
-             {:ok, _pid} <- Node.start(state.local_name, :shortnames) do
+             {:ok, _pid} <- Node.start(state.local_name, state.name_type) do
           enable_node_monitor()
           Node.set_cookie(state.cookie)
 
@@ -208,7 +219,7 @@ defmodule Examples.BeamLab.NodeServer do
       self: Node.self(),
       cookie: state.cookie,
       target: state.target,
-      command: "iex --sname elui_peer --cookie #{state.cookie} -S mix",
+      command: state.command,
       connected: connected,
       known: safe_node_list(:known),
       remote_probe: remote_probe(state.target, connected),
@@ -286,6 +297,22 @@ defmodule Examples.BeamLab.NodeServer do
     case :inet.gethostname() do
       {:ok, host} -> List.to_string(host)
       _ -> "localhost"
+    end
+  end
+
+  defp node_identity do
+    case System.get_env("ELUI_BEAM_LAB_HOST") do
+      value when is_binary(value) ->
+        host = String.trim(value)
+
+        if Regex.match?(~r/^[A-Za-z0-9.-]+$/, host) do
+          {host, :longnames, "--name"}
+        else
+          {hostname(), :shortnames, "--sname"}
+        end
+
+      _ ->
+        {hostname(), :shortnames, "--sname"}
     end
   end
 

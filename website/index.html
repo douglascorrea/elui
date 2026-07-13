@@ -6,12 +6,12 @@
     <title>Elui - Terminal UIs for Elixir</title>
     <meta
       name="description"
-      content="Elui is a terminal UI library for Elixir, inspired by Ratatui. Build immediate-mode TUIs with OTP-friendly widgets, layouts, input, charts, and examples."
+      content="Elui is a terminal UI library for Elixir, inspired by Ratatui. Build immediate-mode TUIs with OTP-friendly widgets, layouts, input, charts, and 36 runnable examples."
     />
     <meta property="og:title" content="Elui - Terminal UIs for Elixir" />
     <meta
       property="og:description"
-      content="Immediate-mode terminal UIs for Elixir and OTP, inspired by Ratatui."
+      content="Immediate-mode terminal UIs for Elixir and OTP, with 36 real example recordings."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://elui.sh" />
@@ -75,8 +75,8 @@
           </div>
           <dl class="hero-stats" aria-label="Project highlights">
             <div>
-              <dt>30+</dt>
-              <dd>Ratatui app ports</dd>
+              <dt>36</dt>
+              <dd>runnable examples</dd>
             </div>
             <div>
               <dt>OTP</dt>
@@ -148,102 +148,39 @@
       <section id="examples" class="section examples-section" aria-labelledby="examples-title">
         <div class="section-kicker">Examples</div>
         <div class="section-heading">
-          <h2 id="examples-title">A gallery waiting for real terminal footage.</h2>
+          <h2 id="examples-title">Thirty-six examples. All running for real.</h2>
           <p>
-            Each slot is ready for a video capture of the matching example app.
-            Drop in recordings as the demos become part of the public story.
+            Every clip launches the checked-in `.exs` file through Elui in a
+            real terminal. The gallery spans complete apps, individual widgets,
+            layout tools, and BEAM runtime experiments.
           </p>
         </div>
 
-        <div class="example-grid">
-          <article class="example-card">
-            <div class="video-slot" data-demo="demo">
-              <span>Video slot</span>
-              <strong>demo.exs</strong>
-            </div>
-            <h3>Widget Tour</h3>
-            <p>A guided sweep through the core widgets and styling surface.</p>
-          </article>
-          <article class="example-card">
-            <div class="video-slot" data-demo="beam">
-              <span>Video slot</span>
-              <strong>beam_lab.exs</strong>
-            </div>
-            <h3>BEAM Lab</h3>
-            <p>Supervisors, GenServers, nodes, remote probes, and GitHub events.</p>
-          </article>
-          <article class="example-card">
-            <div class="video-slot" data-demo="calendar">
-              <span>Video slot</span>
-              <strong>calendar_explorer.exs</strong>
-            </div>
-            <h3>Calendar Explorer</h3>
-            <p>Navigation and style changes rendered in a compact TUI surface.</p>
-          </article>
-          <article class="example-card">
-            <div class="video-slot" data-demo="mouse">
-              <span>Video slot</span>
-              <strong>mouse_drawing.exs</strong>
-            </div>
-            <h3>Mouse Drawing</h3>
-            <p>Continuous terminal drawing with SGR mouse input.</p>
-          </article>
-          <article class="example-card">
-            <div class="video-slot" data-demo="flex">
-              <span>Video slot</span>
-              <strong>flex.exs</strong>
-            </div>
-            <h3>Flex Layout</h3>
-            <p>Ratatui-style flex alignment, fills, constraints, and scrolling.</p>
-          </article>
-          <article class="example-card">
-            <div class="video-slot" data-demo="github">
-              <span>Video slot</span>
-              <strong>async_github.exs</strong>
-            </div>
-            <h3>Async GitHub</h3>
-            <p>Fetch and scroll recent Elixir repository commits from the terminal.</p>
-          </article>
+        <div class="example-toolbar">
+          <div class="example-filters" role="group" aria-label="Filter examples">
+            <button class="example-filter is-active" type="button" data-filter="all" aria-pressed="true">
+              All <span>36</span>
+            </button>
+            <button class="example-filter" type="button" data-filter="apps" aria-pressed="false">
+              Apps <span>12</span>
+            </button>
+            <button class="example-filter" type="button" data-filter="widgets" aria-pressed="false">
+              Widgets <span>16</span>
+            </button>
+            <button class="example-filter" type="button" data-filter="layout" aria-pressed="false">
+              Layout <span>4</span>
+            </button>
+            <button class="example-filter" type="button" data-filter="runtime" aria-pressed="false">
+              Runtime <span>4</span>
+            </button>
+          </div>
+          <p id="example-count" class="example-count" aria-live="polite">36 examples</p>
         </div>
 
-        <div class="example-library" aria-label="Full example video queue">
-          <h3>Full video queue</h3>
-          <div class="mini-example-grid">
-            <span>advanced_widget_impl</span>
-            <span>async_github</span>
-            <span>beam_lab</span>
-            <span>calendar_explorer</span>
-            <span>canvas</span>
-            <span>chart</span>
-            <span>color_explorer</span>
-            <span>colors_rgb</span>
-            <span>constraint_explorer</span>
-            <span>constraints</span>
-            <span>custom_widget</span>
-            <span>demo</span>
-            <span>demo2</span>
-            <span>flex</span>
-            <span>gauge</span>
-            <span>hello_world</span>
-            <span>hyperlink</span>
-            <span>inline</span>
-            <span>input_form</span>
-            <span>minimal</span>
-            <span>modifiers</span>
-            <span>mouse_drawing</span>
-            <span>panic</span>
-            <span>popup</span>
-            <span>release_header</span>
-            <span>scrollbar</span>
-            <span>table</span>
-            <span>todo_list</span>
-            <span>tracing</span>
-            <span>user_input</span>
-            <span>volatility_surface</span>
-            <span>weather</span>
-            <span>widget_ref_container</span>
-          </div>
-        </div>
+        <div id="example-grid" class="example-grid"></div>
+        <noscript>
+          <p class="examples-noscript">The video gallery requires JavaScript.</p>
+        </noscript>
       </section>
 
       <section id="install" class="section install-section" aria-labelledby="install-title">
@@ -292,6 +229,7 @@ mix run examples/demo.exs</code></pre>
       </nav>
     </footer>
 
+    <script src="./gallery.js"></script>
     <script src="./script.js"></script>
   </body>
 </html>

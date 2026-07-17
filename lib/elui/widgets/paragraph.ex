@@ -71,7 +71,7 @@ defmodule Elui.Widgets.Paragraph do
 
       lines =
         paragraph.text.lines
-        |> Enum.map(&Line.patch_style(&1, paragraph.text.style))
+        |> Enum.map(&inherit_style(&1, paragraph))
         |> Enum.flat_map(&wrap_line(&1, paragraph.wrap, inner.width))
         |> Enum.drop(scroll_y)
         |> Enum.take(inner.height)
@@ -85,6 +85,15 @@ defmodule Elui.Widgets.Paragraph do
         buf
       end)
     end
+  end
+
+  defp inherit_style(%Line{} = line, %__MODULE__{} = paragraph) do
+    style =
+      paragraph.style
+      |> Style.patch(paragraph.text.style)
+      |> Style.patch(line.style)
+
+    %{line | style: style}
   end
 
   defp apply_alignment(%Line{alignment: nil} = line, paragraph) do

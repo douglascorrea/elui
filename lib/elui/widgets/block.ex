@@ -16,6 +16,7 @@ defmodule Elui.Widgets.Block do
   """
 
   alias Elui.Buffer
+  alias Elui.Buffer.Cell
   alias Elui.Layout.Rect
   alias Elui.Style
   alias Elui.Symbols.Border
@@ -136,7 +137,7 @@ defmodule Elui.Widgets.Block do
     buffer =
       if :top in block.borders do
         Enum.reduce(left..right, buffer, fn x, buf ->
-          Buffer.put(buf, x, top, Elui.Buffer.Cell.new(sym.horizontal_top, style))
+          put_symbol(buf, x, top, sym.horizontal_top, style)
         end)
       else
         buffer
@@ -145,7 +146,7 @@ defmodule Elui.Widgets.Block do
     buffer =
       if :bottom in block.borders and bottom > top do
         Enum.reduce(left..right, buffer, fn x, buf ->
-          Buffer.put(buf, x, bottom, Elui.Buffer.Cell.new(sym.horizontal_bottom, style))
+          put_symbol(buf, x, bottom, sym.horizontal_bottom, style)
         end)
       else
         buffer
@@ -154,7 +155,7 @@ defmodule Elui.Widgets.Block do
     buffer =
       if :left in block.borders do
         Enum.reduce(top..bottom, buffer, fn y, buf ->
-          Buffer.put(buf, left, y, Elui.Buffer.Cell.new(sym.vertical_left, style))
+          put_symbol(buf, left, y, sym.vertical_left, style)
         end)
       else
         buffer
@@ -163,7 +164,7 @@ defmodule Elui.Widgets.Block do
     buffer =
       if :right in block.borders and right > left do
         Enum.reduce(top..bottom, buffer, fn y, buf ->
-          Buffer.put(buf, right, y, Elui.Buffer.Cell.new(sym.vertical_right, style))
+          put_symbol(buf, right, y, sym.vertical_right, style)
         end)
       else
         buffer
@@ -203,7 +204,18 @@ defmodule Elui.Widgets.Block do
   defp maybe_corner(buffer, false, _x, _y, _symbol, _style), do: buffer
 
   defp maybe_corner(buffer, true, x, y, symbol, style) do
-    Buffer.put(buffer, x, y, Elui.Buffer.Cell.new(symbol, style))
+    put_symbol(buffer, x, y, symbol, style)
+  end
+
+  defp put_symbol(buffer, x, y, symbol, style) do
+    cell =
+      buffer
+      |> Buffer.get(x, y)
+      |> Cell.set_symbol(symbol)
+      |> Cell.set_style(style)
+      |> Map.put(:skip, false)
+
+    Buffer.put(buffer, x, y, cell)
   end
 
   defp draw_titles(buffer, block, area) do

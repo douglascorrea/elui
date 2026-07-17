@@ -91,13 +91,26 @@ defmodule Elui.Buffer do
           {buf, cx}
 
         true ->
-          cell = Cell.set_style(Cell.new(grapheme), style)
+          cell =
+            buf
+            |> get(cx, y)
+            |> Cell.set_symbol(grapheme)
+            |> Cell.set_style(style)
+            |> Map.put(:skip, false)
+
           buf = put(buf, cx, y, cell)
 
           # Mark trailing cells of wide graphemes so the diff skips them.
           buf =
             if width > 1 do
-              put(buf, cx + 1, y, %Cell{symbol: "", style: style, skip: true})
+              trailing =
+                buf
+                |> get(cx + 1, y)
+                |> Cell.set_symbol("")
+                |> Cell.set_style(style)
+                |> Map.put(:skip, true)
+
+              put(buf, cx + 1, y, trailing)
             else
               buf
             end

@@ -31,6 +31,8 @@ versioning once published.
 
 ### Fixed
 
+- Visible `Paragraph` glyphs now inherit the widget's base style while more
+  specific text, line, and span styles continue to override it.
 - Raw terminal mode now disables software flow control so Ctrl shortcuts reach
   applications and restores the original terminal state on exit.
 - Empty `TextArea` placeholders retain their first grapheme under the cursor.

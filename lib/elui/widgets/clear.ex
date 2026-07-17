@@ -14,7 +14,7 @@ defmodule Elui.Widgets.Clear do
 
   defimpl Elui.Widget do
     def render(_clear, area, buffer) do
-      Elui.Buffer.fill(buffer, area, Elui.Buffer.Cell.empty())
+      Elui.Buffer.clear(buffer, area)
     end
   end
 end

@@ -177,6 +177,25 @@ defmodule Elui.Buffer do
     %{buffer | cells: cells}
   end
 
+  @doc "Clears symbols inside `area` while preserving each cell's inherited style."
+  @spec clear(t(), Rect.t()) :: t()
+  def clear(%__MODULE__{} = buffer, %Rect{} = area) do
+    area = Rect.intersection(buffer.area, area)
+
+    cells =
+      Enum.reduce(Rect.positions(area), buffer.cells, fn pos, cells ->
+        cell =
+          cells
+          |> Map.get(pos, Cell.empty())
+          |> Cell.set_symbol(" ")
+          |> Map.put(:skip, false)
+
+        Map.put(cells, pos, cell)
+      end)
+
+    %{buffer | cells: cells}
+  end
+
   @doc "Resets every cell to the empty state."
   @spec reset(t()) :: t()
   def reset(%__MODULE__{} = buffer), do: %{buffer | cells: %{}}

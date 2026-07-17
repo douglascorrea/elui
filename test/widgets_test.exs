@@ -46,6 +46,34 @@ defmodule Elui.WidgetsTest do
       inner = Block.inner(block, Rect.new(0, 0, 10, 10))
       assert inner == Rect.new(2, 2, 6, 6)
     end
+
+    test "borders and titles preserve an inherited background" do
+      area = Rect.new(0, 0, 5, 3)
+
+      buffer =
+        area
+        |> Buffer.empty()
+        |> Buffer.set_style(area, bg: :white)
+
+      block =
+        Block.bordered(
+          title: "T",
+          border_style: [fg: :blue],
+          title_style: [fg: :magenta]
+        )
+
+      rendered = Elui.Widget.render(block, area, buffer)
+      corner = Buffer.get(rendered, 0, 0)
+      title = Buffer.get(rendered, 1, 0)
+
+      assert corner.symbol == "┌"
+      assert corner.style.fg == :blue
+      assert corner.style.bg == :white
+
+      assert title.symbol == "T"
+      assert title.style.fg == :magenta
+      assert title.style.bg == :white
+    end
   end
 
   describe "Paragraph" do

@@ -20,6 +20,23 @@ defmodule Elui.BufferTest do
     assert Buffer.get(buffer, 1, 0).style.fg == :red
   end
 
+  test "set_string preserves inherited cell attributes that its style does not override" do
+    area = Rect.new(0, 0, 5, 1)
+
+    buffer =
+      area
+      |> Buffer.empty()
+      |> Buffer.set_style(area, bg: :white, add_modifier: [:bold])
+      |> Buffer.set_string(0, 0, "Hi", fg: :red)
+
+    cell = Buffer.get(buffer, 0, 0)
+
+    assert cell.symbol == "H"
+    assert cell.style.fg == :red
+    assert cell.style.bg == :white
+    assert :bold in cell.style.add_modifier
+  end
+
   test "set_line honors alignment" do
     buffer = Buffer.empty(Rect.new(0, 0, 10, 1))
     line = Line.new("ab", alignment: :right)

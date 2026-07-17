@@ -31,6 +31,8 @@ versioning once published.
 
 ### Fixed
 
+- Text and block borders now preserve inherited cell attributes that their
+  local styles do not override, enabling reliable full-viewport themes.
 - Visible `Paragraph` glyphs now inherit the widget's base style while more
   specific text, line, and span styles continue to override it.
 - Raw terminal mode now disables software flow control so Ctrl shortcuts reach

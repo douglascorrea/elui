@@ -14,8 +14,8 @@ defmodule Elui do
     * `Elui.Layout` / `Elui.Layout.Rect` / `Elui.Layout.Constraint` -
       splitting the screen into areas
     * `Elui.Style` / `Elui.Style.Color` - colors and text attributes
-    * `Elui.Theme` - named semantic palettes (`dark`, `light`,
-      `high-contrast`)
+    * `Elui.Theme` - named semantic palettes (accessible baselines plus
+      colorful truecolor themes)
     * `Elui.Text` / `Elui.Text.Line` / `Elui.Text.Span` - styled text
     * `Elui.Buffer` - the cell grid widgets render into
     * `Elui.Widget` / `Elui.StatefulWidget` - the rendering protocols

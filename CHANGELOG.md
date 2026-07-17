@@ -10,9 +10,12 @@ versioning once published.
 ### Added
 
 - `Elui.Theme` with semantic roles and built-in `dark`, `light`, and
-  `high-contrast` palettes.
+  `high-contrast` palettes, plus truecolor `opencode`, `tokyonight`, and
+  `catppuccin` palettes.
 - `Elui.Widgets.Modal`, `FilterableSelect`, and `TextArea` for compact,
   app-owned editing workflows.
+- Opt-in word wrapping for `Elui.Widgets.TextArea`, including wrapped cursor
+  placement, visual-row scrolling, and safe oversized-token wrapping.
 - `Elui.Widgets.ToggleGrid` for cell-focused boolean matrices with
   optional per-row actions and an add-row control.
 - `Elui.Widgets.WeekGrid` for seven-day schedule layouts, including a

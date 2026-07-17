@@ -1,8 +1,8 @@
 defmodule Elui.Widgets.TextAreaTest do
   use ExUnit.Case, async: true
 
-  alias Elui.Buffer
-  alias Elui.Layout.Rect
+  alias Elui.Backend.Test, as: TestBackend
+  alias Elui.{Frame, Terminal}
   alias Elui.Widgets.{Block, Modal, TextArea}
   alias Elui.Widgets.TextArea.State
 
@@ -21,10 +21,14 @@ defmodule Elui.Widgets.TextAreaTest do
     state = State.new(text: "Hello\nworld")
     field = TextArea.new(block: Block.bordered(title: "Compose"))
 
-    area = Rect.new(0, 0, 40, 12)
-    frame = %Elui.Frame{buffer: Buffer.empty(area), area: area, cursor_position: nil}
-    {frame, state} = Modal.render_stateful(frame, field, state, vertical: {:length, 6})
-    screen = Buffer.to_lines(frame.buffer) |> Enum.join("\n")
+    terminal = test_terminal(40, 12)
+
+    {terminal, state} =
+      Terminal.draw(terminal, fn frame ->
+        Modal.render_stateful(frame, field, state, vertical: {:length, 6})
+      end)
+
+    screen = terminal |> lines() |> Enum.join("\n")
 
     assert screen =~ "Compose"
     assert screen =~ "Hello"
@@ -35,11 +39,22 @@ defmodule Elui.Widgets.TextAreaTest do
   test "an empty TextArea keeps every placeholder grapheme visible under the cursor" do
     state = State.new()
     field = TextArea.new(placeholder: "Write your post…")
-    area = Rect.new(0, 0, 30, 3)
+    terminal = test_terminal(30, 3)
 
-    {buffer, _state} =
-      Elui.StatefulWidget.render(field, area, Buffer.empty(area), state)
+    {terminal, _state} =
+      Terminal.draw(terminal, fn frame ->
+        Frame.render_stateful_widget(frame, field, Frame.area(frame), state)
+      end)
 
-    assert buffer |> Buffer.to_lines() |> hd() |> String.trim_trailing() == "Write your post…"
+    assert terminal |> lines() |> hd() |> String.trim_trailing() == "Write your post…"
   end
+
+  defp test_terminal(width, height) do
+    Terminal.new(
+      backend: TestBackend,
+      backend_opts: [width: width, height: height]
+    )
+  end
+
+  defp lines(terminal), do: terminal |> Terminal.backend_state() |> TestBackend.to_lines()
 end

@@ -15,6 +15,7 @@ defmodule Elui.Widgets.ToggleGrid.State do
           {:cell, non_neg_integer(), non_neg_integer()} | {:row_action, non_neg_integer()} | :add
   @type t :: %__MODULE__{focus: focus(), offset: non_neg_integer()}
 
+  @doc "Creates toggle-grid focus and scroll state."
   @spec new(Keyword.t()) :: t()
   def new(opts \\ []) do
     %__MODULE__{
@@ -26,39 +27,43 @@ defmodule Elui.Widgets.ToggleGrid.State do
   @doc "Moves focus by `{drow, dcol}` within a grid of `row_count` rows and `col_count` columns."
   @spec move(t(), {integer(), integer()}, non_neg_integer(), non_neg_integer(), keyword()) :: t()
   def move(%__MODULE__{} = state, {drow, dcol}, row_count, col_count, opts \\ []) do
-    row_actions? = Keyword.get(opts, :row_actions, true)
-    add_row? = Keyword.get(opts, :add_row, true)
+    bounds = %{
+      rows: row_count,
+      columns: col_count,
+      row_actions?: Keyword.get(opts, :row_actions, true),
+      add_row?: Keyword.get(opts, :add_row, true)
+    }
 
     case state.focus do
       {:cell, row, col} ->
-        move_from_cell(state, row, col, drow, dcol, row_count, col_count, row_actions?, add_row?)
+        move_from_cell(state, row, col, drow, dcol, bounds)
 
       {:row_action, row} ->
-        move_from_row_action(state, row, drow, dcol, row_count, col_count, row_actions?, add_row?)
+        move_from_row_action(state, row, drow, dcol, bounds)
 
       :add ->
-        move_from_add(state, drow, dcol, row_count, col_count, row_actions?, add_row?)
+        move_from_add(state, drow, dcol, bounds)
     end
   end
 
-  defp move_from_cell(state, row, col, drow, dcol, row_count, col_count, row_actions?, add_row?) do
+  defp move_from_cell(state, row, col, drow, dcol, bounds) do
     cond do
-      dcol < 0 and col == 0 and row_actions? ->
+      dcol < 0 and col == 0 and bounds.row_actions? ->
         %{state | focus: {:row_action, row}}
 
       dcol < 0 and col > 0 ->
         %{state | focus: {:cell, row, col - 1}}
 
-      dcol > 0 and col + 1 < col_count ->
+      dcol > 0 and col + 1 < bounds.columns ->
         %{state | focus: {:cell, row, col + 1}}
 
       drow < 0 and row > 0 ->
         %{state | focus: {:cell, row - 1, col}}
 
-      drow > 0 and row + 1 < row_count ->
+      drow > 0 and row + 1 < bounds.rows ->
         %{state | focus: {:cell, row + 1, col}}
 
-      drow > 0 and row + 1 >= row_count and add_row? ->
+      drow > 0 and row + 1 >= bounds.rows and bounds.add_row? ->
         %{state | focus: :add}
 
       true ->
@@ -66,18 +71,18 @@ defmodule Elui.Widgets.ToggleGrid.State do
     end
   end
 
-  defp move_from_row_action(state, row, drow, dcol, row_count, col_count, _row_actions?, add_row?) do
+  defp move_from_row_action(state, row, drow, dcol, bounds) do
     cond do
-      dcol > 0 and col_count > 0 ->
+      dcol > 0 and bounds.columns > 0 ->
         %{state | focus: {:cell, row, 0}}
 
       drow < 0 and row > 0 ->
         %{state | focus: {:row_action, row - 1}}
 
-      drow > 0 and row + 1 < row_count ->
+      drow > 0 and row + 1 < bounds.rows ->
         %{state | focus: {:row_action, row + 1}}
 
-      drow > 0 and row + 1 >= row_count and add_row? ->
+      drow > 0 and row + 1 >= bounds.rows and bounds.add_row? ->
         %{state | focus: :add}
 
       true ->
@@ -85,13 +90,13 @@ defmodule Elui.Widgets.ToggleGrid.State do
     end
   end
 
-  defp move_from_add(state, drow, _dcol, row_count, col_count, row_actions?, _add_row?) do
+  defp move_from_add(state, drow, _dcol, bounds) do
     cond do
-      drow < 0 and row_count > 0 and row_actions? ->
-        %{state | focus: {:row_action, row_count - 1}}
+      drow < 0 and bounds.rows > 0 and bounds.row_actions? ->
+        %{state | focus: {:row_action, bounds.rows - 1}}
 
-      drow < 0 and row_count > 0 and col_count > 0 ->
-        %{state | focus: {:cell, row_count - 1, 0}}
+      drow < 0 and bounds.rows > 0 and bounds.columns > 0 ->
+        %{state | focus: {:cell, bounds.rows - 1, 0}}
 
       true ->
         state

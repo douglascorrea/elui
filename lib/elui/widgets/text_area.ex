@@ -13,6 +13,7 @@ defmodule Elui.Widgets.TextArea.State do
           scroll: non_neg_integer()
         }
 
+  @doc "Creates text editing state, placing the cursor at the end by default."
   @spec new(Keyword.t()) :: t()
   def new(opts \\ []) do
     text = Keyword.get(opts, :text, "") || ""
@@ -27,6 +28,7 @@ defmodule Elui.Widgets.TextArea.State do
     }
   end
 
+  @doc "Replaces the text, resets scroll, and moves the cursor to the end."
   @spec set_text(t(), String.t()) :: t()
   def set_text(%__MODULE__{} = state, text) when is_binary(text) do
     graphemes = String.graphemes(text)
@@ -109,7 +111,10 @@ defmodule Elui.Widgets.TextArea.State do
     end
   end
 
-  defp cursor_line_col(text, cursor) do
+  @doc false
+  @spec cursor_line_col(String.t(), non_neg_integer()) ::
+          {non_neg_integer(), non_neg_integer()}
+  def cursor_line_col(text, cursor) do
     graphemes = String.graphemes(text)
     {before, _} = Enum.split(graphemes, cursor)
     before_text = Enum.join(before, "")
@@ -164,7 +169,7 @@ defmodule Elui.Widgets.TextArea do
     else
       display = if state.text == "", do: field.placeholder, else: state.text
       lines = String.split(display, "\n")
-      {line_index, col} = cursor_line_col(state.text, state.cursor)
+      {line_index, col} = State.cursor_line_col(state.text, state.cursor)
       scroll = clamp_scroll(state.scroll, line_index, inner.height)
       state = %{state | scroll: scroll}
 
@@ -212,14 +217,6 @@ defmodule Elui.Widgets.TextArea do
   end
 
   defp clamp_scroll(scroll, _line_index, _height), do: max(scroll, 0)
-
-  defp cursor_line_col(text, cursor) do
-    graphemes = String.graphemes(text)
-    {before, _} = Enum.split(graphemes, cursor)
-    before_text = Enum.join(before, "")
-    lines = String.split(before_text, "\n")
-    {length(lines) - 1, length(String.graphemes(List.last(lines) || ""))}
-  end
 
   defimpl Elui.Widget do
     def render(field, area, buffer) do

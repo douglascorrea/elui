@@ -1,9 +1,8 @@
 defmodule Elui.Widgets.FilterableSelectTest do
   use ExUnit.Case, async: true
 
-  alias Elui.Buffer
-  alias Elui.Frame
-  alias Elui.Layout.Rect
+  alias Elui.Backend.Test, as: TestBackend
+  alias Elui.Terminal
   alias Elui.Widgets.{Block, FilterableSelect}
   alias Elui.Widgets.FilterableSelect.State
 
@@ -35,10 +34,7 @@ defmodule Elui.Widgets.FilterableSelectTest do
     state = State.new(["America/New_York", "America/Sao_Paulo", "Europe/Paris"], filter: "Sao")
     select = FilterableSelect.new(block: Block.bordered(title: "Timezones"))
 
-    area = Rect.new(0, 0, 40, 12)
-    frame = %Frame{buffer: Buffer.empty(area), area: area, cursor_position: nil}
-    {frame, _state} = FilterableSelect.render_modal(frame, select, state)
-    screen = Buffer.to_lines(frame.buffer) |> Enum.join("\n")
+    screen = render_modal(select, state, 40, 12) |> Enum.join("\n")
 
     assert screen =~ "Timezones"
     assert screen =~ "America/Sao_Paulo"
@@ -49,15 +45,58 @@ defmodule Elui.Widgets.FilterableSelectTest do
     state = State.new(["dark", "light", "high-contrast"])
     select = FilterableSelect.new(block: Block.bordered(title: "Theme"))
 
-    area = Rect.new(0, 0, 80, 24)
-    frame = %Frame{buffer: Buffer.empty(area), area: area, cursor_position: nil}
-    {frame, _state} = FilterableSelect.render_modal(frame, select, state)
-
     rendered_rows =
-      frame.buffer
-      |> Buffer.to_lines()
+      select
+      |> render_modal(state, 80, 24)
       |> Enum.count(&(String.trim(&1) != ""))
 
     assert rendered_rows == 5
+  end
+
+  test "content-aware width includes the block title and highlight symbol" do
+    title = "A very long content-aware selector title"
+    state = State.new(["content-aware option"])
+
+    select =
+      FilterableSelect.new(
+        block: Block.bordered(title: title, border_type: :double),
+        highlight_symbol: ">>>>>> ",
+        min_width: 1
+      )
+
+    lines = render_modal(select, state, 80, 24)
+    screen = Enum.join(lines, "\n")
+
+    assert screen =~ title
+
+    selected_line = Enum.find(lines, &String.contains?(&1, "content-aware option"))
+    assert selected_line =~ ">>>>>> content-aware option"
+    assert selected_line |> String.trim_trailing() |> String.ends_with?("║")
+  end
+
+  test "bounds large lists and stays inside wide, 80-column, and narrow viewports" do
+    state = State.new(for n <- 1..30, do: "option #{n}")
+    select = FilterableSelect.new(block: Block.bordered(title: "Options"))
+
+    for {width, height} <- [{140, 42}, {80, 24}, {30, 12}] do
+      lines = render_modal(select, state, width, height)
+      assert Enum.all?(lines, &(String.length(&1) == width))
+      assert Enum.count(lines, &(String.trim(&1) != "")) <= min(14, height)
+    end
+  end
+
+  defp render_modal(select, state, width, height) do
+    terminal =
+      Terminal.new(
+        backend: TestBackend,
+        backend_opts: [width: width, height: height]
+      )
+
+    {terminal, _state} =
+      Terminal.draw(terminal, fn frame ->
+        FilterableSelect.render_modal(frame, select, state)
+      end)
+
+    terminal |> Terminal.backend_state() |> TestBackend.to_lines()
   end
 end

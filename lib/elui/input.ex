@@ -1,3 +1,16 @@
+defmodule Elui.Input.Session do
+  @moduledoc "Resources owned by a running `Elui.Input` reader."
+
+  defstruct reader: nil, parser: nil, terminal_mode: nil, mouse?: false
+
+  @type t :: %__MODULE__{
+          reader: pid(),
+          parser: pid(),
+          terminal_mode: String.t() | nil,
+          mouse?: boolean()
+        }
+end
+
 defmodule Elui.Input do
   @moduledoc """
   Raw-mode keyboard input.
@@ -27,32 +40,56 @@ defmodule Elui.Input do
   This plays the role of ratatui's event backends (crossterm events).
   """
 
+  alias Elui.Input.Session
+
   @doc """
   Enables raw mode and starts reading keys, sending events to
-  `subscriber`. Returns the reader pid.
+  `subscriber`. Returns a session to pass to `stop/1`.
   """
-  @spec start(pid(), Keyword.t()) :: pid()
+  @spec start(pid(), Keyword.t()) :: Session.t()
   def start(subscriber \\ self(), opts \\ []) do
-    enable_raw_mode()
-    if Keyword.get(opts, :mouse, false), do: enable_mouse_capture()
+    terminal_mode = enable_raw_mode()
+    mouse? = Keyword.get(opts, :mouse, false)
+    if mouse?, do: enable_mouse_capture()
     parser = spawn_link(fn -> parse_loop(subscriber, []) end)
-    spawn_link(fn -> read_loop(parser) end)
+    reader = spawn_link(fn -> read_loop(parser) end)
+
+    %Session{
+      reader: reader,
+      parser: parser,
+      terminal_mode: terminal_mode,
+      mouse?: mouse?
+    }
   end
 
-  @doc "Enables terminal raw mode."
-  @spec enable_raw_mode() :: :ok
+  @doc "Stops an input session and restores its exact prior terminal mode."
+  @spec stop(Session.t()) :: :ok
+  def stop(%Session{} = session) do
+    Enum.each([session.reader, session.parser], fn pid ->
+      if is_pid(pid) and Process.alive?(pid) do
+        Process.unlink(pid)
+        Process.exit(pid, :kill)
+      end
+    end)
+
+    if session.mouse?, do: disable_mouse_capture()
+    disable_raw_mode(session.terminal_mode)
+  end
+
+  @doc "Enables terminal raw mode and returns an opaque token for restoration."
+  @spec enable_raw_mode() :: String.t() | nil
   def enable_raw_mode do
-    remember_terminal_mode()
+    terminal_mode = terminal_mode()
     set_shell_mode(:raw)
     stty(["raw", "-echo", "-ixon", "-ixoff"])
-    :ok
+    terminal_mode
   end
 
   @doc "Restores the terminal to cooked (normal) mode."
-  @spec disable_raw_mode() :: :ok
-  def disable_raw_mode do
+  @spec disable_raw_mode(String.t() | nil) :: :ok
+  def disable_raw_mode(terminal_mode \\ nil) do
     set_shell_mode(:cooked)
-    restore_terminal_mode()
+    restore_terminal_mode(terminal_mode)
     :ok
   end
 
@@ -74,7 +111,7 @@ defmodule Elui.Input do
     _ -> :ok
   end
 
-  defp remember_terminal_mode do
+  defp terminal_mode do
     path =
       Path.join(
         System.tmp_dir!(),
@@ -83,20 +120,26 @@ defmodule Elui.Input do
 
     shell = System.find_executable("sh")
 
-    with shell when is_binary(shell) <- shell,
-         :ok <- run_port(shell, ["-c", "stty -g > \"$1\" 2>/dev/null", "elui-stty", path]),
-         {:ok, mode} <- File.read(path) do
-      Process.put({__MODULE__, :terminal_mode}, String.trim(mode))
-    end
+    result =
+      try do
+        with shell when is_binary(shell) <- shell,
+             :ok <-
+               run_port(shell, ["-c", "stty -g > \"$1\" 2>/dev/null", "elui-stty", path]),
+             {:ok, mode} <- File.read(path) do
+          String.trim(mode)
+        else
+          _error -> nil
+        end
+      rescue
+        _ -> nil
+      end
 
     File.rm(path)
-    :ok
-  rescue
-    _ -> :ok
+    result
   end
 
-  defp restore_terminal_mode do
-    case Process.delete({__MODULE__, :terminal_mode}) do
+  defp restore_terminal_mode(terminal_mode) do
+    case terminal_mode do
       mode when is_binary(mode) and mode != "" ->
         stty([mode])
 

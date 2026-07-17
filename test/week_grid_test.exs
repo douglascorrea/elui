@@ -1,7 +1,8 @@
 defmodule Elui.Widgets.WeekGridTest do
   use ExUnit.Case, async: true
 
-  alias Elui.Buffer
+  alias Elui.Backend.Test, as: TestBackend
+  alias Elui.{Frame, Terminal}
   alias Elui.Layout.Rect
   alias Elui.Widgets.WeekGrid
   alias Elui.Widgets.WeekGrid.State
@@ -75,19 +76,29 @@ defmodule Elui.Widgets.WeekGridTest do
 
     grid = WeekGrid.new(days, min_column_width: 10)
 
-    for width <- [140, 80] do
+    for {width, height} <- [{140, 42}, {80, 24}] do
       assert WeekGrid.fits?(grid, Rect.new(0, 0, width, 12))
-      lines = render(grid, State.new(), width, 12)
+      lines = render(grid, State.new(), width, height)
       assert Enum.join(lines, "\n") =~ "09:00 Q#123"
       assert Enum.all?(lines, &(String.length(&1) == width))
     end
 
     refute WeekGrid.fits?(grid, Rect.new(0, 0, 60, 12))
+    assert Enum.all?(render(grid, State.new(), 60, 20), &(String.length(&1) == 60))
   end
 
   defp render(grid, state, width, height) do
-    area = Rect.new(0, 0, width, height)
-    {buffer, _state} = Elui.StatefulWidget.render(grid, area, Buffer.empty(area), state)
-    Buffer.to_lines(buffer)
+    terminal =
+      Terminal.new(
+        backend: TestBackend,
+        backend_opts: [width: width, height: height]
+      )
+
+    {terminal, _state} =
+      Terminal.draw(terminal, fn frame ->
+        Frame.render_stateful_widget(frame, grid, Frame.area(frame), state)
+      end)
+
+    terminal |> Terminal.backend_state() |> TestBackend.to_lines()
   end
 end

@@ -1,8 +1,8 @@
 defmodule Elui.Widgets.ToggleGridTest do
   use ExUnit.Case, async: true
 
-  alias Elui.Buffer
-  alias Elui.Layout.Rect
+  alias Elui.Backend.Test, as: TestBackend
+  alias Elui.{Frame, Terminal}
   alias Elui.Widgets.ToggleGrid
   alias Elui.Widgets.ToggleGrid.State
 
@@ -46,9 +46,34 @@ defmodule Elui.Widgets.ToggleGridTest do
     refute screen =~ "[x]"
   end
 
-  defp render(grid, state) do
-    area = Rect.new(0, 0, 80, 8)
-    {buffer, _state} = Elui.StatefulWidget.render(grid, area, Buffer.empty(area), state)
-    Buffer.to_lines(buffer)
+  test "renders readable default cells at wide, 80-column, and narrow viewports" do
+    grid =
+      ToggleGrid.new(
+        ~w(Mon Tue Wed Thu Fri Sat Sun),
+        [%{label: "10:00", cells: [true, false, true, false, true, false, true]}]
+      )
+
+    for {width, height} <- [{140, 42}, {80, 24}, {40, 12}] do
+      lines = render(grid, State.new(focus: {:cell, 0, 0}), width, height)
+      screen = Enum.join(lines, "\n")
+      assert screen =~ "Mon Tue Wed"
+      assert screen =~ "[x] [ ] [x]"
+      assert Enum.all?(lines, &(String.length(&1) == width))
+    end
+  end
+
+  defp render(grid, state, width \\ 80, height \\ 8) do
+    terminal =
+      Terminal.new(
+        backend: TestBackend,
+        backend_opts: [width: width, height: height]
+      )
+
+    {terminal, _state} =
+      Terminal.draw(terminal, fn frame ->
+        Frame.render_stateful_widget(frame, grid, Frame.area(frame), state)
+      end)
+
+    terminal |> Terminal.backend_state() |> TestBackend.to_lines()
   end
 end

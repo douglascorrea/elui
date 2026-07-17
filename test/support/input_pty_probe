@@ -23,7 +23,7 @@ terminal_mode = fn ->
 end
 
 initial_mode = terminal_mode.()
-Elui.Input.start(self())
+input = Elui.Input.start(self())
 IO.puts("PROBE_READY")
 
 receive do
@@ -32,5 +32,5 @@ after
   1_000 -> IO.puts("PROBE_TIMEOUT")
 end
 
-Elui.Input.disable_raw_mode()
+Elui.Input.stop(input)
 IO.puts("PROBE_RESTORED=#{terminal_mode.() == initial_mode}")

@@ -16,6 +16,7 @@ defmodule Elui.Widgets.FilterableSelect.State do
           limit: pos_integer() | nil
         }
 
+  @doc "Creates filter and selection state for the supplied items."
   @spec new([term()], Keyword.t()) :: t()
   def new(items \\ [], opts \\ []) do
     %__MODULE__{
@@ -27,6 +28,7 @@ defmodule Elui.Widgets.FilterableSelect.State do
     |> clamp_selected()
   end
 
+  @doc "Replaces the available items and clamps the current selection."
   @spec set_items(t(), [term()]) :: t()
   def set_items(%__MODULE__{} = state, items) do
     %{state | items: Enum.map(items, &normalize/1)} |> clamp_selected()
@@ -44,11 +46,13 @@ defmodule Elui.Widgets.FilterableSelect.State do
     |> maybe_limit(state.limit)
   end
 
+  @doc "Returns the selected filtered item, or `nil` when no item matches."
   @spec selected_item(t()) :: item() | nil
   def selected_item(%__MODULE__{} = state) do
     Enum.at(filtered(state), state.selected)
   end
 
+  @doc "Returns the selected filtered value, or `nil` when no item matches."
   @spec selected_value(t()) :: term() | nil
   def selected_value(%__MODULE__{} = state) do
     case selected_item(state) do
@@ -149,6 +153,8 @@ defmodule Elui.Widgets.FilterableSelect do
 
   alias Elui.Frame
   alias Elui.Style
+  alias Elui.Text.Line
+  alias Elui.Widgets.Block
   alias Elui.Widgets.FilterableSelect.State
   alias Elui.Widgets.List, as: UiList
   alias Elui.Widgets.Modal
@@ -220,9 +226,19 @@ defmodule Elui.Widgets.FilterableSelect do
     horizontal =
       case select.horizontal do
         :content ->
-          content_width = labels |> Enum.map(&String.length/1) |> Enum.max(fn -> 0 end)
+          label_width = labels |> Enum.map(&display_width/1) |> Enum.max(fn -> 0 end)
+          content_width = label_width + display_width(select.highlight_symbol)
+          {content_overhead, title_outer_width} = block_widths(select.block)
           cap = max(div(area.width * select.max_width_percentage, 100), 1)
-          width = (content_width + 4) |> max(select.min_width) |> min(cap) |> min(area.width)
+
+          width =
+            content_width
+            |> Kernel.+(content_overhead)
+            |> max(title_outer_width)
+            |> max(select.min_width)
+            |> min(cap)
+            |> min(area.width)
+
           {:length, width}
 
         constraint ->
@@ -241,4 +257,20 @@ defmodule Elui.Widgets.FilterableSelect do
 
     {horizontal, vertical}
   end
+
+  defp block_widths(nil), do: {0, 0}
+
+  defp block_widths(%Block{} = block) do
+    border_width = Enum.count([:left, :right], &(&1 in block.borders))
+    content_overhead = border_width + block.padding[:left] + block.padding[:right]
+
+    title_width =
+      (block.titles_top ++ block.titles_bottom)
+      |> Enum.map(&Line.width/1)
+      |> Enum.max(fn -> 0 end)
+
+    {content_overhead, title_width + border_width}
+  end
+
+  defp display_width(text), do: text |> Line.raw() |> Line.width()
 end

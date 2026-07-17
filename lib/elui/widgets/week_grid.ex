@@ -14,6 +14,7 @@ defmodule Elui.Widgets.WeekGrid.State do
           scroll: non_neg_integer()
         }
 
+  @doc "Creates week-grid day, item, and scroll selection state."
   @spec new(Keyword.t()) :: t()
   def new(opts \\ []) do
     %__MODULE__{

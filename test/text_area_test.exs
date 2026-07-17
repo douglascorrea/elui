@@ -2,7 +2,7 @@ defmodule Elui.Widgets.TextAreaTest do
   use ExUnit.Case, async: true
 
   alias Elui.Backend.Test, as: TestBackend
-  alias Elui.{Frame, Terminal}
+  alias Elui.{Buffer, Frame, Terminal}
   alias Elui.Widgets.{Block, Modal, TextArea}
   alias Elui.Widgets.TextArea.State
 
@@ -34,6 +34,39 @@ defmodule Elui.Widgets.TextAreaTest do
     assert screen =~ "Hello"
     assert screen =~ "world"
     assert state.text == "Hello\nworld"
+  end
+
+  test "Modal preserves a themed surface behind border and content cells" do
+    state = State.new(text: "Readable")
+
+    field =
+      TextArea.new(
+        style: [fg: :black],
+        block: Block.bordered(title: "Compose", border_style: [fg: :blue])
+      )
+
+    terminal = test_terminal(40, 12)
+
+    {terminal, _state} =
+      Terminal.draw(terminal, fn frame ->
+        frame =
+          Frame.render_widget(
+            frame,
+            Block.new(style: [fg: :black, bg: :white]),
+            Frame.area(frame)
+          )
+
+        Modal.render_stateful(frame, field, state, vertical: {:length, 6})
+      end)
+
+    buffer = terminal |> Terminal.backend_state() |> TestBackend.buffer()
+    border = Buffer.get(buffer, 6, 3)
+    content = Buffer.get(buffer, 7, 4)
+
+    assert border.style.fg == :blue
+    assert border.style.bg == :white
+    assert content.style.fg == :black
+    assert content.style.bg == :white
   end
 
   test "an empty TextArea keeps every placeholder grapheme visible under the cursor" do

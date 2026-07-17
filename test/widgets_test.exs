@@ -191,6 +191,26 @@ defmodule Elui.WidgetsTest do
       buffer = Elui.Widget.render(Clear.new(), area, buffer)
       assert Buffer.to_lines(buffer) == ["   "]
     end
+
+    test "erases symbols without punching through an inherited surface style" do
+      area = Rect.new(0, 0, 3, 1)
+
+      buffer =
+        area
+        |> Buffer.empty()
+        |> Buffer.set_style(area, fg: :black, bg: :white)
+        |> Buffer.set_string(0, 0, "abc", fg: :magenta)
+        |> then(&Elui.Widget.render(Clear.new(), area, &1))
+
+      assert Buffer.to_lines(buffer) == ["   "]
+
+      for x <- 0..2 do
+        cell = Buffer.get(buffer, x, 0)
+        assert cell.style.fg == :magenta
+        assert cell.style.bg == :white
+        refute cell.skip
+      end
+    end
   end
 
   describe "Calendar" do

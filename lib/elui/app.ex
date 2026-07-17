@@ -79,7 +79,7 @@ defmodule Elui.App do
     tick_rate = Keyword.get(opts, :tick_rate, 250)
     mouse? = Keyword.get(opts, :mouse, false)
     terminal = Terminal.new(Keyword.get(opts, :terminal, []))
-    Input.start(self(), mouse: mouse?)
+    input = Input.start(self(), mouse: mouse?)
 
     model = module.init(opts)
     area = Terminal.area(terminal)
@@ -92,8 +92,7 @@ defmodule Elui.App do
       end
     after
       Terminal.restore(terminal)
-      if mouse?, do: Input.disable_mouse_capture()
-      Input.disable_raw_mode()
+      Input.stop(input)
     end
   end
 

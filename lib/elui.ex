@@ -14,6 +14,8 @@ defmodule Elui do
     * `Elui.Layout` / `Elui.Layout.Rect` / `Elui.Layout.Constraint` -
       splitting the screen into areas
     * `Elui.Style` / `Elui.Style.Color` - colors and text attributes
+    * `Elui.Theme` - named semantic palettes (`dark`, `light`,
+      `high-contrast`)
     * `Elui.Text` / `Elui.Text.Line` / `Elui.Text.Span` - styled text
     * `Elui.Buffer` - the cell grid widgets render into
     * `Elui.Widget` / `Elui.StatefulWidget` - the rendering protocols
@@ -29,7 +31,10 @@ defmodule Elui do
   `Elui.Widgets.LineGauge`, `Elui.Widgets.BarChart`,
   `Elui.Widgets.Sparkline`, `Elui.Widgets.Chart`,
   `Elui.Widgets.Canvas`, `Elui.Widgets.Calendar`,
-  `Elui.Widgets.Scrollbar` and `Elui.Widgets.Clear`.
+  `Elui.Widgets.Scrollbar`, `Elui.Widgets.Clear`,
+  `Elui.Widgets.ToggleGrid`, `Elui.Widgets.WeekGrid`,
+  `Elui.Widgets.Modal`, `Elui.Widgets.TextArea`, and
+  `Elui.Widgets.FilterableSelect`.
 
   ## Hello world
 

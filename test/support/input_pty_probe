@@ -1,0 +1,36 @@
+terminal_mode = fn ->
+  path = Path.join(System.tmp_dir!(), "elui-probe-stty-#{System.unique_integer([:positive])}")
+
+  port =
+    Port.open(
+      {:spawn_executable, System.find_executable("sh")},
+      [
+        :nouse_stdio,
+        :exit_status,
+        {:args, ["-c", "stty -g > \"$1\"", "elui-probe", path]}
+      ]
+    )
+
+  receive do
+    {^port, {:exit_status, 0}} -> :ok
+  after
+    1_000 -> raise "stty capture timed out"
+  end
+
+  mode = path |> File.read!() |> String.trim()
+  File.rm!(path)
+  mode
+end
+
+initial_mode = terminal_mode.()
+input = Elui.Input.start(self())
+IO.puts("PROBE_READY")
+
+receive do
+  {:elui_event, event} -> IO.puts("PROBE_EVENT=#{inspect(event)}")
+after
+  1_000 -> IO.puts("PROBE_TIMEOUT")
+end
+
+Elui.Input.stop(input)
+IO.puts("PROBE_RESTORED=#{terminal_mode.() == initial_mode}")

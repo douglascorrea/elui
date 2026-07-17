@@ -42,24 +42,18 @@ defmodule Elui.Input do
   @doc "Enables terminal raw mode."
   @spec enable_raw_mode() :: :ok
   def enable_raw_mode do
-    # OTP 26+: switch the noshell tty driver to raw mode.
-    :shell.start_interactive({:noshell, :raw})
+    remember_terminal_mode()
+    set_shell_mode(:raw)
+    stty(["raw", "-echo", "-ixon", "-ixoff"])
     :ok
-  rescue
-    _ -> stty(["raw", "-echo"])
-  catch
-    _, _ -> stty(["raw", "-echo"])
   end
 
   @doc "Restores the terminal to cooked (normal) mode."
   @spec disable_raw_mode() :: :ok
   def disable_raw_mode do
-    :shell.start_interactive({:noshell, :cooked})
+    set_shell_mode(:cooked)
+    restore_terminal_mode()
     :ok
-  rescue
-    _ -> stty(["-raw", "echo"])
-  catch
-    _, _ -> stty(["-raw", "echo"])
   end
 
   @doc "Enables SGR mouse capture for terminals that support it."
@@ -80,11 +74,74 @@ defmodule Elui.Input do
     _ -> :ok
   end
 
-  defp stty(args) do
-    System.cmd("stty", args, stderr_to_stdout: true)
+  defp remember_terminal_mode do
+    path =
+      Path.join(
+        System.tmp_dir!(),
+        "elui-stty-#{System.unique_integer([:positive, :monotonic])}.state"
+      )
+
+    shell = System.find_executable("sh")
+
+    with shell when is_binary(shell) <- shell,
+         :ok <- run_port(shell, ["-c", "stty -g > \"$1\" 2>/dev/null", "elui-stty", path]),
+         {:ok, mode} <- File.read(path) do
+      Process.put({__MODULE__, :terminal_mode}, String.trim(mode))
+    end
+
+    File.rm(path)
     :ok
   rescue
     _ -> :ok
+  end
+
+  defp restore_terminal_mode do
+    case Process.delete({__MODULE__, :terminal_mode}) do
+      mode when is_binary(mode) and mode != "" ->
+        stty([mode])
+
+      _other ->
+        stty(["-raw", "echo"])
+    end
+
+    :ok
+  rescue
+    _ -> :ok
+  end
+
+  defp set_shell_mode(mode) do
+    :shell.start_interactive({:noshell, mode})
+    :ok
+  rescue
+    _ -> :ok
+  catch
+    _, _ -> :ok
+  end
+
+  defp stty(args) do
+    case System.find_executable("stty") do
+      executable when is_binary(executable) -> run_port(executable, args)
+      _other -> :ok
+    end
+  rescue
+    _ -> :ok
+  end
+
+  defp run_port(executable, args) do
+    port =
+      Port.open(
+        {:spawn_executable, executable},
+        [:nouse_stdio, :exit_status, {:args, args}]
+      )
+
+    receive do
+      {^port, {:exit_status, 0}} -> :ok
+      {^port, {:exit_status, _status}} -> :error
+    after
+      1_000 ->
+        Port.close(port)
+        :error
+    end
   end
 
   # -- reader -----------------------------------------------------------------

@@ -9,6 +9,14 @@ versioning once published.
 
 ### Added
 
+- `Elui.Theme` with semantic roles and built-in `dark`, `light`, and
+  `high-contrast` palettes.
+- `Elui.Widgets.Modal`, `FilterableSelect`, and `TextArea` for compact,
+  app-owned editing workflows.
+- `Elui.Widgets.ToggleGrid` for cell-focused boolean matrices with
+  optional per-row actions and an add-row control.
+- `Elui.Widgets.WeekGrid` for seven-day schedule layouts, including a
+  `fits?/2` seam for responsive fallbacks.
 - Ratatui-inspired terminal rendering primitives for buffers, frames, styles,
   layout, widgets, and test backends.
 - `Elui.App`, an Elm-style runner for keyboard, mouse, tick, resize, and
@@ -20,6 +28,12 @@ versioning once published.
   policy, support guide, code of conduct, issue templates, PR template, and CI.
 - Static project website under `website/`, including a GitHub Pages workflow
   and `elui.sh` custom-domain file.
+
+### Fixed
+
+- Raw terminal mode now disables software flow control so Ctrl shortcuts reach
+  applications and restores the original terminal state on exit.
+- Empty `TextArea` placeholders retain their first grapheme under the cursor.
 
 ### Security
 

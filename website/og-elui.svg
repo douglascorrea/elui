@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Elui — Terminal UIs for Elixir</title>
+  <desc id="desc">A dark terminal-inspired card with Elui branding and a colorful terminal interface.</desc>
+  <rect width="1200" height="630" fill="#10110d"/>
+  <g stroke="#f1ecd9" stroke-opacity="0.055">
+    <path d="M0 70H1200M0 140H1200M0 210H1200M0 280H1200M0 350H1200M0 420H1200M0 490H1200M0 560H1200"/>
+    <path d="M80 0V630M160 0V630M240 0V630M320 0V630M400 0V630M480 0V630M560 0V630M640 0V630M720 0V630M800 0V630M880 0V630M960 0V630M1040 0V630M1120 0V630"/>
+  </g>
+  <rect x="64" y="58" width="72" height="72" rx="13" fill="#c7ff45"/>
+  <text x="100" y="107" text-anchor="middle" fill="#10110d" font-family="ui-monospace, Menlo, monospace" font-size="38" font-weight="800">el</text>
+  <text x="158" y="107" fill="#f1ecd9" font-family="ui-monospace, Menlo, monospace" font-size="42" font-weight="800">Elui</text>
+  <text x="66" y="231" fill="#c7ff45" font-family="ui-monospace, Menlo, monospace" font-size="24" font-weight="700" letter-spacing="1">IMMEDIATE-MODE · OTP-FRIENDLY</text>
+  <text x="64" y="315" fill="#f1ecd9" font-family="ui-monospace, Menlo, monospace" font-size="68" font-weight="800">Terminal UIs</text>
+  <text x="64" y="394" fill="#f1ecd9" font-family="ui-monospace, Menlo, monospace" font-size="68" font-weight="800">for <tspan fill="#c7ff45">Elixir</tspan></text>
+  <text x="67" y="456" fill="#a8aa9b" font-family="ui-monospace, Menlo, monospace" font-size="23">Layouts · widgets · input · charts</text>
+  <g transform="translate(704 80)">
+    <rect width="430" height="410" rx="18" fill="#181a15" stroke="#f1ecd9" stroke-opacity="0.35" stroke-width="2"/>
+    <path d="M0 58H430" stroke="#f1ecd9" stroke-opacity="0.24"/>
+    <circle cx="28" cy="29" r="7" fill="#ff7248"/>
+    <circle cx="51" cy="29" r="7" fill="#f2b84b"/>
+    <circle cx="74" cy="29" r="7" fill="#c7ff45"/>
+    <text x="215" y="36" text-anchor="middle" fill="#a8aa9b" font-family="ui-monospace, Menlo, monospace" font-size="16">elui/demo.exs</text>
+    <g fill="none" stroke-width="2">
+      <rect x="30" y="88" width="370" height="86" rx="8" stroke="#3bd6cc"/>
+      <rect x="30" y="194" width="176" height="94" rx="8" stroke="#c7ff45"/>
+      <rect x="224" y="194" width="176" height="94" rx="8" stroke="#ff7248"/>
+      <rect x="30" y="308" width="370" height="70" rx="8" stroke="#f2b84b"/>
+    </g>
+    <text x="52" y="120" fill="#3bd6cc" font-family="ui-monospace, Menlo, monospace" font-size="16">ELUI RUNTIME</text>
+    <text x="52" y="149" fill="#f1ecd9" font-family="ui-monospace, Menlo, monospace" font-size="20">frame diff  ████████░░</text>
+    <text x="50" y="229" fill="#c7ff45" font-family="ui-monospace, Menlo, monospace" font-size="15">WIDGETS</text>
+    <text x="50" y="259" fill="#f1ecd9" font-family="ui-monospace, Menlo, monospace" font-size="18">36 examples</text>
+    <text x="244" y="229" fill="#ff7248" font-family="ui-monospace, Menlo, monospace" font-size="15">EVENTS</text>
+    <text x="244" y="259" fill="#f1ecd9" font-family="ui-monospace, Menlo, monospace" font-size="18">keys + mouse</text>
+    <text x="52" y="352" fill="#f2b84b" font-family="ui-monospace, Menlo, monospace" font-size="15">BEAM NATIVE</text>
+  </g>
+  <rect x="64" y="545" width="1070" height="2" fill="#f1ecd9" fill-opacity="0.18"/>
+  <text x="64" y="590" fill="#f1ecd9" font-family="ui-monospace, Menlo, monospace" font-size="22">github.com/douglascorrea/elui</text>
+  <text x="1134" y="590" text-anchor="end" fill="#c7ff45" font-family="ui-monospace, Menlo, monospace" font-size="24" font-weight="800">elui.sh</text>
+</svg>

@@ -14,11 +14,37 @@
       content="Immediate-mode terminal UIs for Elixir and OTP, with 36 real example recordings."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://elui.sh" />
+    <meta property="og:url" content="https://elui.sh/" />
+    <meta property="og:site_name" content="Elui" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content="https://elui.sh/og-elui.png" />
+    <meta property="og:image:secure_url" content="https://elui.sh/og-elui.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Elui terminal interface with the text Terminal UIs for Elixir"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Elui - Terminal UIs for Elixir" />
+    <meta
+      name="twitter:description"
+      content="Immediate-mode terminal UIs for Elixir and OTP, with 36 real example recordings."
+    />
+    <meta name="twitter:image" content="https://elui.sh/og-elui.png" />
+    <meta
+      name="twitter:image:alt"
+      content="Elui terminal interface with the text Terminal UIs for Elixir"
+    />
     <meta name="theme-color" content="#10110d" />
-    <link rel="canonical" href="https://elui.sh" />
+    <meta name="posthog-project-token" content="__POSTHOG_PROJECT_TOKEN__" />
+    <meta name="posthog-api-host" content="https://us.i.posthog.com" />
+    <meta name="posthog-ui-host" content="https://us.posthog.com" />
+    <link rel="canonical" href="https://elui.sh/" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css" />
+    <script src="./analytics.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -29,10 +55,10 @@
         <span class="brand-word">Elui</span>
       </a>
       <nav class="nav-links" aria-label="Site navigation">
-        <a href="#features">Features</a>
-        <a href="#examples">Examples</a>
-        <a href="#install">Install</a>
-        <a href="https://github.com/douglascorrea/elui">GitHub</a>
+        <a href="#features" data-ph-event="navigation_clicked" data-ph-destination="features">Features</a>
+        <a href="#examples" data-ph-event="navigation_clicked" data-ph-destination="examples">Examples</a>
+        <a href="#install" data-ph-event="navigation_clicked" data-ph-destination="install">Install</a>
+        <a href="https://github.com/douglascorrea/elui" data-ph-event="resource_clicked" data-ph-resource="github" data-ph-surface="header">GitHub</a>
       </nav>
     </header>
 
@@ -70,8 +96,8 @@
             GenServers, messages, and long-running systems.
           </p>
           <div class="hero-actions" aria-label="Primary actions">
-            <a class="button button-primary" href="#install">Install</a>
-            <a class="button button-secondary" href="#examples">Watch examples</a>
+            <a class="button button-primary" href="#install" data-ph-event="cta_clicked" data-ph-cta="install">Install</a>
+            <a class="button button-secondary" href="#examples" data-ph-event="cta_clicked" data-ph-cta="watch_examples">Watch examples</a>
           </div>
           <dl class="hero-stats" aria-label="Project highlights">
             <div>
@@ -158,19 +184,19 @@
 
         <div class="example-toolbar">
           <div class="example-filters" role="group" aria-label="Filter examples">
-            <button class="example-filter is-active" type="button" data-filter="all" aria-pressed="true">
+            <button class="example-filter is-active" type="button" data-filter="all" data-ph-event="example_filter_selected" data-ph-filter="all" aria-pressed="true">
               All <span>36</span>
             </button>
-            <button class="example-filter" type="button" data-filter="apps" aria-pressed="false">
+            <button class="example-filter" type="button" data-filter="apps" data-ph-event="example_filter_selected" data-ph-filter="apps" aria-pressed="false">
               Apps <span>12</span>
             </button>
-            <button class="example-filter" type="button" data-filter="widgets" aria-pressed="false">
+            <button class="example-filter" type="button" data-filter="widgets" data-ph-event="example_filter_selected" data-ph-filter="widgets" aria-pressed="false">
               Widgets <span>16</span>
             </button>
-            <button class="example-filter" type="button" data-filter="layout" aria-pressed="false">
+            <button class="example-filter" type="button" data-filter="layout" data-ph-event="example_filter_selected" data-ph-filter="layout" aria-pressed="false">
               Layout <span>4</span>
             </button>
-            <button class="example-filter" type="button" data-filter="runtime" aria-pressed="false">
+            <button class="example-filter" type="button" data-filter="runtime" data-ph-event="example_filter_selected" data-ph-filter="runtime" aria-pressed="false">
               Runtime <span>4</span>
             </button>
           </div>
@@ -219,9 +245,9 @@ mix run examples/demo.exs</code></pre>
         <span>Terminal UIs for Elixir and OTP.</span>
       </div>
       <nav aria-label="Footer navigation">
-        <a href="https://github.com/douglascorrea/elui">GitHub</a>
-        <a href="https://hexdocs.pm/elui">HexDocs</a>
-        <a href="#top">Back to top</a>
+        <a href="https://github.com/douglascorrea/elui" data-ph-event="resource_clicked" data-ph-resource="github" data-ph-surface="footer">GitHub</a>
+        <a href="https://hexdocs.pm/elui" data-ph-event="resource_clicked" data-ph-resource="hexdocs" data-ph-surface="footer">HexDocs</a>
+        <a href="#top" data-ph-event="navigation_clicked" data-ph-destination="top">Back to top</a>
       </nav>
     </footer>
 

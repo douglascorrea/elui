@@ -28,6 +28,10 @@ versioning once published.
   policy, support guide, code of conduct, issue templates, PR template, and CI.
 - Static project website under `website/`, including a GitHub Pages workflow
   and `elui.sh` custom-domain file.
+- Complete Open Graph and X/Twitter social-card metadata for `elui.sh`, with a
+  1200-by-630 project preview image.
+- Privacy-conscious PostHog analytics for website visits, referrals, Web
+  Vitals, navigation, examples, outbound links, scroll depth, and engagement.
 
 ### Fixed
 

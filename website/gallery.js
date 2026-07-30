@@ -243,12 +243,14 @@ if (exampleGrid) {
               playsinline
               preload="metadata"
               poster="${poster}"
+              data-example-name="${example.name}"
+              data-example-category="${example.category}"
               aria-label="${example.title} example recording"
             >
               <source src="${video}" type="video/mp4" />
               <a href="${video}">Open the ${example.title} recording</a>
             </video>
-            <button class="example-play" type="button" aria-label="Play ${example.title} recording">
+            <button class="example-play" type="button" data-ph-event="example_play_requested" data-ph-example="${example.name}" data-ph-category="${example.category}" aria-label="Play ${example.title} recording">
               <span aria-hidden="true">&#9654;</span>
             </button>
             <span class="example-category">${categoryLabels[example.category]}</span>
@@ -260,7 +262,7 @@ if (exampleGrid) {
             </div>
             <code class="example-file">${example.name}.exs</code>
             <p>${example.description}</p>
-            <a class="source-link" href="${source}">View source</a>
+            <a class="source-link" href="${source}" data-ph-event="resource_clicked" data-ph-resource="example_source" data-ph-example="${example.name}">View source</a>
           </div>
         </article>
       `;

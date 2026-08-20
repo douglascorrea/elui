@@ -71,6 +71,9 @@ defmodule Elui.App do
     * `:tick_rate` - milliseconds between `:tick` events (default 250)
     * `:terminal` - options forwarded to `Elui.Terminal.new/1`
     * `:mouse` - enables SGR mouse capture while the app runs (default `false`)
+    * `:input` - reads terminal input while the app runs (default `true`).
+      Pass `false` to drive the app yourself by sending `{:elui_event, event}`
+      messages to the process running it, e.g. from a test.
 
   Returns the final model.
   """
@@ -79,12 +82,12 @@ defmodule Elui.App do
     tick_rate = Keyword.get(opts, :tick_rate, 250)
     mouse? = Keyword.get(opts, :mouse, false)
     terminal = Terminal.new(Keyword.get(opts, :terminal, []))
-    input = Input.start(self(), mouse: mouse?)
-
-    model = module.init(opts)
-    area = Terminal.area(terminal)
+    input = if Keyword.get(opts, :input, true), do: Input.start(self(), mouse: mouse?)
 
     try do
+      model = module.init(opts)
+      area = Terminal.area(terminal)
+
       case module.update(model, {:resize, area.width, area.height}) do
         {:ok, model} -> loop(module, model, terminal, tick_rate)
         :quit -> model
@@ -92,7 +95,7 @@ defmodule Elui.App do
       end
     after
       Terminal.restore(terminal)
-      Input.stop(input)
+      if input, do: Input.stop(input)
     end
   end
 

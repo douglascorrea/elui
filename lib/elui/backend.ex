@@ -40,6 +40,15 @@ defmodule Elui.Backend do
   @doc "Flushes any buffered output."
   @callback flush(state()) :: state()
 
+  @doc """
+  Writes raw overlay payloads at absolute positions. Called after the cell
+  diff, before the cursor is positioned. Optional: backends that cannot
+  emit out-of-grid bytes (e.g. test backends) may ignore them.
+  """
+  @callback draw_overlays(state(), [Elui.Frame.overlay()]) :: state()
+
+  @optional_callbacks draw_overlays: 2
+
   @doc "Restores the terminal (leave alternate screen, show cursor...)."
   @callback restore(state()) :: state()
 end

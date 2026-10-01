@@ -14,18 +14,33 @@ defmodule Elui.Frame do
   alias Elui.Buffer
   alias Elui.Layout.Rect
 
-  defstruct buffer: nil, area: %Rect{}, cursor_position: nil, count: 0
+  defstruct buffer: nil, area: %Rect{}, cursor_position: nil, count: 0, overlays: []
+
+  @type overlay :: {integer(), integer(), iodata()}
 
   @type t :: %__MODULE__{
           buffer: Buffer.t(),
           area: Rect.t(),
           cursor_position: {integer(), integer()} | nil,
-          count: non_neg_integer()
+          count: non_neg_integer(),
+          overlays: [overlay()]
         }
 
   @doc "The full area of the frame (the terminal size)."
   @spec area(t()) :: Rect.t()
   def area(%__MODULE__{area: area}), do: area
+
+  @doc """
+  Add a raw overlay payload to be written at `{x, y}` after the cell grid
+  is flushed — the escape hatch for graphics protocols (sixel, kitty) and
+  other out-of-grid bytes. The backend writes them in order; the cursor is
+  positioned as usual afterwards. Overlays are not diffed: each frame gets
+  exactly the overlays it declares.
+  """
+  @spec put_overlay(t(), integer(), integer(), iodata()) :: t()
+  def put_overlay(%__MODULE__{} = frame, x, y, data) do
+    %{frame | overlays: frame.overlays ++ [{x, y, data}]}
+  end
 
   @doc "Renders a widget into the given area."
   @spec render_widget(t(), Elui.Widget.t(), Rect.t()) :: t()

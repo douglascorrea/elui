@@ -10,7 +10,7 @@ defmodule Elui.Backend.Test do
   alias Elui.Buffer
   alias Elui.Layout.Rect
 
-  defstruct width: 80, height: 24, buffer: nil, cursor_visible: true, cursor: {0, 0}
+  defstruct width: 80, height: 24, buffer: nil, cursor_visible: true, cursor: {0, 0}, overlays: []
 
   @impl true
   def init(opts \\ []) do
@@ -51,6 +51,12 @@ defmodule Elui.Backend.Test do
 
   @impl true
   def flush(state), do: state
+
+  @impl true
+  def draw_overlays(state, overlays) do
+    # Record this frame (don't render) — tests assert on the payloads.
+    %{state | overlays: overlays}
+  end
 
   @impl true
   def restore(state), do: state

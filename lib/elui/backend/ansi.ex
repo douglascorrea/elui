@@ -43,6 +43,15 @@ defmodule Elui.Backend.Ansi do
   end
 
   @impl true
+  def draw_overlays(state, overlays) do
+    output =
+      Enum.map(overlays, fn {x, y, data} -> [move_to(x, y), data] end)
+
+    write(state, output)
+    state
+  end
+
+  @impl true
   def hide_cursor(state), do: write(state, "\e[?25l")
 
   @impl true

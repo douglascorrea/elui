@@ -197,7 +197,7 @@ Elui also includes Elixir ports of every Ratatui app under
 | `Style`, `Color`, `Modifier` | `Elui.Style`, `Elui.Style.Color` |
 | `Span`, `Line`, `Text` | `Elui.Text.Span`, `Elui.Text.Line`, `Elui.Text` |
 | `Widget` / `StatefulWidget` traits | `Elui.Widget` / `Elui.StatefulWidget` protocols |
-| crossterm input events | `Elui.Input` key and SGR mouse events |
+| crossterm input events | `Elui.Input` key and SGR mouse events (CSI modifiers, kitty `CSI u`) |
 | app event loop | `Elui.App` behaviour |
 
 ## Testing UI Code

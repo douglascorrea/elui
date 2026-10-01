@@ -1,0 +1,25 @@
+# Collects every key event for a fixed window and prints them, so a PTY test
+# can assert on what real raw-mode input parses into.
+input = Elui.Input.start(self())
+IO.puts("PROBE_READY")
+
+collect = fn collect, acc, deadline ->
+  remaining = deadline - System.monotonic_time(:millisecond)
+
+  if remaining <= 0 do
+    Enum.reverse(acc)
+  else
+    receive do
+      {:elui_event, event} -> collect.(collect, [event | acc], deadline)
+    after
+      remaining -> Enum.reverse(acc)
+    end
+  end
+end
+
+events = collect.(collect, [], System.monotonic_time(:millisecond) + 1_500)
+
+Elui.Input.stop(input)
+
+for event <- events, do: IO.puts("PROBE_EVENT=#{inspect(event)}")
+IO.puts("PROBE_DONE")

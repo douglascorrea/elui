@@ -59,4 +59,18 @@ defmodule Elui.TerminalTest do
     assert backend.cursor == {3, 1}
     assert backend.cursor_visible
   end
+
+  test "raw overlays reach the backend and clear on the next frame" do
+    terminal = new_terminal(10, 2)
+
+    {terminal, _} =
+      Terminal.draw(terminal, fn frame ->
+        Frame.put_overlay(frame, 2, 1, ["raw", "-bytes"])
+      end)
+
+    assert Terminal.backend_state(terminal).overlays == [{2, 1, ["raw", "-bytes"]}]
+
+    {terminal, _} = Terminal.draw(terminal, & &1)
+    assert Terminal.backend_state(terminal).overlays == []
+  end
 end

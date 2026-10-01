@@ -84,6 +84,15 @@ defmodule Elui.Terminal do
     updates = Buffer.diff(terminal.previous_buffer, frame.buffer)
     backend_state = terminal.backend.draw(terminal.backend_state, updates)
 
+    backend_state =
+      if function_exported?(terminal.backend, :draw_overlays, 2) do
+        # Invoke even for [] so recording backends can clear prior-frame
+        # overlays deterministically.
+        terminal.backend.draw_overlays(backend_state, frame.overlays)
+      else
+        backend_state
+      end
+
     {backend_state, hidden} =
       case frame.cursor_position do
         nil ->

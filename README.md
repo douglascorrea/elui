@@ -36,8 +36,9 @@ changes can still happen before a stable release.
 - Styled text, spans, paragraphs, wrapping, scrolling, and alignment
 - Widgets for blocks, lists, tables, tabs, gauges, charts, canvas drawing,
   calendars, scrollbars, sparklines, bar charts, and clearing regions
-- Semantic themes plus production app primitives for modals, filterable
-  selects, multiline editing, toggle matrices, and responsive week layouts
+- Semantic themes, including colorful truecolor palettes, plus production app
+  primitives for modals, filterable selects, word-wrapped multiline editing,
+  toggle matrices, and responsive week layouts
 - Raw keyboard input and SGR mouse capture
 - Examples that port every app from Ratatui's `examples/apps/`
 - OTP-friendly examples that show supervisors, GenServers, BEAM nodes, remote

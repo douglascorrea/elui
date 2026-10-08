@@ -5,12 +5,14 @@ defmodule Elui.Widgets.TextArea.State do
   `cursor` is a UTF-8 grapheme offset into `text` (0..grapheme_count).
   """
 
-  defstruct text: "", cursor: 0, scroll: 0
+  defstruct text: "", cursor: 0, scroll: 0, visual_width: nil, visual_wrap: false
 
   @type t :: %__MODULE__{
           text: String.t(),
           cursor: non_neg_integer(),
-          scroll: non_neg_integer()
+          scroll: non_neg_integer(),
+          visual_width: pos_integer() | nil,
+          visual_wrap: false | :word
         }
 
   @doc "Creates text editing state, placing the cursor at the end by default."
@@ -24,7 +26,9 @@ defmodule Elui.Widgets.TextArea.State do
     %__MODULE__{
       text: text,
       cursor: cursor,
-      scroll: Keyword.get(opts, :scroll, 0)
+      scroll: Keyword.get(opts, :scroll, 0),
+      visual_width: nil,
+      visual_wrap: false
     }
   end
 
@@ -32,7 +36,15 @@ defmodule Elui.Widgets.TextArea.State do
   @spec set_text(t(), String.t()) :: t()
   def set_text(%__MODULE__{} = state, text) when is_binary(text) do
     graphemes = String.graphemes(text)
-    %{state | text: text, cursor: length(graphemes), scroll: 0}
+
+    %{
+      state
+      | text: text,
+        cursor: length(graphemes),
+        scroll: 0,
+        visual_width: nil,
+        visual_wrap: false
+    }
   end
 
   @doc "Applies a keyboard event. Returns `{state, :continue | :noop}`."
@@ -91,6 +103,22 @@ defmodule Elui.Widgets.TextArea.State do
   end
 
   defp move_vertical(state, delta) do
+    if state.visual_wrap == :word and is_integer(state.visual_width) do
+      cursor =
+        Elui.Widgets.TextArea.VisualLayout.move_vertical(
+          state.text,
+          state.cursor,
+          state.visual_width,
+          delta
+        )
+
+      %{state | cursor: cursor}
+    else
+      move_physical_vertical(state, delta)
+    end
+  end
+
+  defp move_physical_vertical(state, delta) do
     lines = String.split(state.text, "\n")
     {line_index, col} = cursor_line_col(state.text, state.cursor)
     target = line_index + delta
@@ -136,18 +164,22 @@ defmodule Elui.Widgets.TextArea do
   alias Elui.Style
   alias Elui.Widgets.Block
   alias Elui.Widgets.TextArea.State
+  alias Elui.Widgets.TextArea.VisualLayout
 
   defstruct block: nil,
             style: %Style{},
             cursor_style: %Style{},
-            placeholder: ""
+            placeholder: "",
+            wrap: false
 
   @type t :: %__MODULE__{}
 
   @doc """
   Creates a text area.
 
-  Options: `:block`, `:style`, `:cursor_style`, `:placeholder`.
+  Options: `:block`, `:style`, `:cursor_style`, `:placeholder`, and `:wrap`.
+  Set `:wrap` to `:word` (or `true`) to wrap at word boundaries and safely
+  split words wider than the available area.
   """
   @spec new(Keyword.t()) :: t()
   def new(opts \\ []) do
@@ -155,7 +187,8 @@ defmodule Elui.Widgets.TextArea do
       block: Keyword.get(opts, :block),
       style: Style.to_style(Keyword.get(opts, :style)),
       cursor_style: Style.to_style(Keyword.get(opts, :cursor_style, bg: :blue, fg: :white)),
-      placeholder: Keyword.get(opts, :placeholder, "")
+      placeholder: Keyword.get(opts, :placeholder, ""),
+      wrap: normalize_wrap(Keyword.get(opts, :wrap, false))
     }
   end
 
@@ -167,11 +200,21 @@ defmodule Elui.Widgets.TextArea do
     if Rect.empty?(inner) do
       {buffer, state}
     else
-      display = if state.text == "", do: field.placeholder, else: state.text
-      lines = String.split(display, "\n")
-      {line_index, col} = State.cursor_line_col(state.text, state.cursor)
+      {lines, line_index, col} =
+        if state.text == "" do
+          {placeholder_lines(field.placeholder, inner.width, field.wrap), 0, 0}
+        else
+          VisualLayout.layout(state.text, state.cursor, inner.width, field.wrap)
+        end
+
       scroll = clamp_scroll(state.scroll, line_index, inner.height)
-      state = %{state | scroll: scroll}
+
+      state = %{
+        state
+        | scroll: scroll,
+          visual_width: if(field.wrap == :word, do: inner.width, else: nil),
+          visual_wrap: field.wrap
+      }
 
       buffer =
         lines
@@ -180,12 +223,12 @@ defmodule Elui.Widgets.TextArea do
         |> Enum.take(inner.height)
         |> Enum.reduce(buffer, fn {line, index}, buf ->
           y = inner.y + (index - scroll)
-          text = String.slice(line, 0, max(inner.width, 0))
+          text = VisualLayout.take_columns(line, inner.width)
 
           style =
             if state.text == "", do: Style.patch(field.style, fg: :dark_gray), else: field.style
 
-          Buffer.set_string(buf, inner.x, y, String.pad_trailing(text, inner.width), style)
+          Buffer.set_string(buf, inner.x, y, text, style)
         end)
 
       buffer =
@@ -197,8 +240,13 @@ defmodule Elui.Widgets.TextArea do
 
           if cursor_y >= inner.y and cursor_y < Rect.bottom(inner) do
             row = Enum.at(lines, line_index) || ""
-            ch = String.at(row, col) || " "
-            Buffer.set_string(buffer, inner.x + col, cursor_y, ch, field.cursor_style)
+
+            {cursor_x, ch} =
+              if col >= inner.width,
+                do: VisualLayout.clamped_cursor(row, inner.width),
+                else: {col, VisualLayout.cursor_symbol(row, col)}
+
+            Buffer.set_string(buffer, inner.x + cursor_x, cursor_y, ch, field.cursor_style)
           else
             buffer
           end
@@ -217,6 +265,18 @@ defmodule Elui.Widgets.TextArea do
   end
 
   defp clamp_scroll(scroll, _line_index, _height), do: max(scroll, 0)
+
+  defp placeholder_lines(placeholder, width, wrap) do
+    {lines, _line, _col} = VisualLayout.layout(placeholder, 0, width, wrap)
+    lines
+  end
+
+  defp normalize_wrap(value) when value in [false, nil], do: false
+  defp normalize_wrap(value) when value in [true, :word], do: :word
+
+  defp normalize_wrap(value) do
+    raise ArgumentError, "TextArea :wrap must be false, true, or :word, got: #{inspect(value)}"
+  end
 
   defimpl Elui.Widget do
     def render(field, area, buffer) do

@@ -51,6 +51,14 @@ defmodule Elui.Input do
   alias Elui.Input.Session
 
   @default_esc_timeout 25
+  @default_sequence_timeout 500
+
+  # Characters asked for per read. In `{noshell, raw}` mode the group leader
+  # answers a read with whatever has arrived, up to this many, so a sequence
+  # the terminal wrote in one go (a mouse report, a kitty key) reaches the
+  # parser in one piece instead of a round trip per byte — between which a
+  # busy group leader (writing a frame) can stall longer than `:esc_timeout`.
+  @read_chunk 4096
 
   @doc """
   Enables raw mode and starts reading keys, sending events to
@@ -66,15 +74,30 @@ defmodule Elui.Input do
       and a fragmented arrow key arrives as ESC followed by literal `[A`
       (likely over ssh or a loaded machine), too high and pressing Escape
       feels sticky.
+    * `:sequence_timeout` — milliseconds to wait for the rest of a sequence
+      that has got past its ESC (`ESC [`, `ESC [ < 3 5 ;`, `ESC O`) before
+      giving up on it (default `#{@default_sequence_timeout}`). Such a prefix
+      is almost never typed, so waiting longer costs nothing; giving up early
+      is what turns a slow mouse report into an Escape key plus `[<35;…M`
+      typed as text. See `expire/1` for what a sequence that never completes
+      becomes.
   """
   @spec start(pid(), Keyword.t()) :: Session.t()
   def start(subscriber \\ self(), opts \\ []) do
-    terminal_mode = enable_raw_mode()
+    {terminal_mode, raw_reads?} = raw_mode()
     mouse? = Keyword.get(opts, :mouse, false)
-    esc_timeout = Keyword.get(opts, :esc_timeout, @default_esc_timeout)
+
+    timeouts = %{
+      esc: Keyword.get(opts, :esc_timeout, @default_esc_timeout),
+      sequence: Keyword.get(opts, :sequence_timeout, @default_sequence_timeout)
+    }
+
     if mouse?, do: enable_mouse_capture()
-    parser = spawn_link(fn -> parse_loop(subscriber, [], esc_timeout) end)
-    reader = spawn_link(fn -> read_loop(parser) end)
+    parser = spawn_link(fn -> parse_loop(subscriber, [], timeouts) end)
+    # Without the group leader in raw mode a read of N characters waits for
+    # all N, so only then is reading in chunks safe.
+    chunk = if raw_reads?, do: @read_chunk, else: 1
+    reader = spawn_link(fn -> read_loop(parser, chunk) end)
 
     %Session{
       reader: reader,
@@ -101,10 +124,16 @@ defmodule Elui.Input do
   @doc "Enables terminal raw mode and returns an opaque token for restoration."
   @spec enable_raw_mode() :: String.t() | nil
   def enable_raw_mode do
-    terminal_mode = terminal_mode()
-    set_shell_mode(:raw)
-    stty(["raw", "-echo", "-ixon", "-ixoff"])
+    {terminal_mode, _raw_reads?} = raw_mode()
     terminal_mode
+  end
+
+  # The prior mode, and whether the group leader switched to raw reads.
+  defp raw_mode do
+    terminal_mode = terminal_mode()
+    raw_reads? = set_shell_mode(:raw) == :ok
+    stty(["raw", "-echo", "-ixon", "-ixoff"])
+    {terminal_mode, raw_reads?}
   end
 
   @doc "Restores the terminal to cooked (normal) mode."
@@ -176,11 +205,10 @@ defmodule Elui.Input do
 
   defp set_shell_mode(mode) do
     :shell.start_interactive({:noshell, mode})
-    :ok
   rescue
-    _ -> :ok
+    _ -> :error
   catch
-    _, _ -> :ok
+    _, _ -> :error
   end
 
   defp stty(args) do
@@ -211,8 +239,8 @@ defmodule Elui.Input do
 
   # -- reader -----------------------------------------------------------------
 
-  defp read_loop(parser) do
-    case IO.getn(:stdio, "", 1) do
+  defp read_loop(parser, chunk) do
+    case IO.getn(:stdio, "", chunk) do
       :eof ->
         :ok
 
@@ -221,7 +249,7 @@ defmodule Elui.Input do
 
       data ->
         send(parser, {:input, data})
-        read_loop(parser)
+        read_loop(parser, chunk)
     end
   end
 
@@ -248,23 +276,51 @@ defmodule Elui.Input do
     end
   end
 
+  @doc """
+  How long to wait for the rest of `pending` — the incomplete tail `parse/1`
+  returned — before handing it to `expire/1`: `:infinity` for nothing,
+  `esc_timeout` for a lone ESC (the Escape key, or the start of a sequence),
+  `sequence_timeout` for a sequence already past its ESC.
+  """
+  @spec wait_time(String.t(), timeout(), timeout()) :: timeout()
+  def wait_time(pending, esc_timeout, sequence_timeout \\ @default_sequence_timeout) do
+    pending_wait(String.graphemes(pending), %{esc: esc_timeout, sequence: sequence_timeout})
+  end
+
+  @doc """
+  The events for an incomplete tail nothing completed in time: a lone ESC is
+  the Escape key, `ESC [` and `ESC O` are Alt+`[` and Alt+`O`, and a control
+  sequence cut off inside its parameters (`ESC [ < 3 5 ; 1 0`, the head of a
+  mouse report whose tail went missing) is dropped — never typed, because
+  an Escape key followed by its characters is what stops an application.
+  """
+  @spec expire(String.t()) :: [tuple()]
+  def expire(pending), do: expire_pending(String.graphemes(pending))
+
+  defp pending_wait([], _timeouts), do: :infinity
+  defp pending_wait(["\e"], timeouts), do: timeouts.esc
+  defp pending_wait(_sequence, timeouts), do: max(timeouts.sequence, timeouts.esc)
+
+  defp expire_pending([]), do: []
+  defp expire_pending(["\e"]), do: [{:key, :esc, []}]
+  defp expire_pending(["\e", ch]) when ch in ["[", "O"], do: [{:key, {:char, ch}, [:alt]}]
+  defp expire_pending(["\e", "[" | _params]), do: []
+  defp expire_pending(pending), do: Enum.map(pending, &parse_single/1)
+
   # -- parser -----------------------------------------------------------------
 
-  # Accumulates bytes into escape sequences. A bare ESC is emitted when
-  # no continuation arrives within `esc_timeout` ms.
-  defp parse_loop(subscriber, pending, esc_timeout) do
-    timeout = if pending == [], do: :infinity, else: esc_timeout
-
+  # Accumulates bytes into escape sequences. What is still incomplete when
+  # no more input arrives in time (`pending_wait/2`) expires (`expire/1`).
+  defp parse_loop(subscriber, pending, timeouts) do
     receive do
       {:input, data} ->
         pending = pending ++ String.graphemes(data)
         pending = flush_events(subscriber, pending)
-        parse_loop(subscriber, pending, esc_timeout)
+        parse_loop(subscriber, pending, timeouts)
     after
-      timeout ->
-        # Timed out mid-sequence: emit what we have as individual keys.
-        Enum.each(pending, fn ch -> emit(subscriber, parse_single(ch)) end)
-        parse_loop(subscriber, [], esc_timeout)
+      pending_wait(pending, timeouts) ->
+        Enum.each(expire_pending(pending), &emit(subscriber, &1))
+        parse_loop(subscriber, [], timeouts)
     end
   end
 

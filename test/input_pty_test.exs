@@ -45,15 +45,50 @@ defmodule Elui.InputPtyTest do
     assert output =~ "PROBE_DONE"
   end
 
+  @tag :pty
+  test "a mouse report that arrives in two pieces is still one mouse event" do
+    # A loaded machine (or a group leader busy writing a frame) can hold back
+    # the rest of a sequence for longer than the escape time. Timing out then
+    # used to send Escape followed by `[<35;10;5M` as typed text — which
+    # interrupts a coding agent and leaves garbage at its prompt.
+    probe = Path.expand("support/input_pty_keys_probe", __DIR__)
+    ebin = Path.expand("../_build/test/lib/elui/ebin", __DIR__)
+    elixir = System.find_executable("elixir")
+
+    output = run_in_pty(elixir, ebin, probe, [{"\\033\\[<35;10", 200}, {";5M", 0}])
+
+    assert output =~ "PROBE_EVENT={:mouse, :move, 9, 4, []}"
+    refute output =~ "PROBE_EVENT={:key, :esc, []}"
+    refute output =~ ~s(PROBE_EVENT={:key, {:char, ")
+    assert output =~ "PROBE_DONE"
+  end
+
+  @tag :pty
+  test "Escape on its own still arrives after the escape time" do
+    probe = Path.expand("support/input_pty_keys_probe", __DIR__)
+    ebin = Path.expand("../_build/test/lib/elui/ebin", __DIR__)
+    elixir = System.find_executable("elixir")
+
+    output = run_in_pty(elixir, ebin, probe, [{"\\033", 200}, {"a", 0}])
+
+    assert output =~ ~r/PROBE_EVENT={:key, :esc, \[\]}\r?\nPROBE_EVENT={:key, {:char, "a"}, \[\]}/
+  end
+
+  # `send_keys` is a string, or `{keys, pause_ms}` pieces sent in order with
+  # a pause after each.
   defp run_in_pty(elixir, ebin, probe, send_keys \\ "\\023") do
     command = Enum.join([elixir, "-pa", ebin, probe], " ")
+    pieces = if is_binary(send_keys), do: [{send_keys, 0}], else: send_keys
 
     cond do
       # Prefer expect: it synchronizes on PROBE_READY. The script fallback's
       # timed write can race a cold BEAM startup and be swallowed by IXON.
       expect = System.find_executable("expect") ->
+        sends =
+          Enum.map_join(pieces, " ", fn {keys, pause} -> "send \"#{keys}\"; after #{pause};" end)
+
         script =
-          "spawn -noecho #{command}; expect PROBE_READY; send \"#{send_keys}\"; " <>
+          "spawn -noecho #{command}; expect PROBE_READY; #{sends} " <>
             "after 1500; send \\021; expect eof"
 
         {output, 0} = System.cmd(expect, ["-c", script], stderr_to_stdout: true)
@@ -67,8 +102,12 @@ defmodule Elui.InputPtyTest do
           end
 
         # `[` has to be escaped for Tcl but not for printf.
-        keys = String.replace(send_keys, "\\[", "[")
-        quoted = "(sleep 1; printf '#{keys}'; sleep 2; printf '\\021') | #{script_command}"
+        sends =
+          Enum.map_join(pieces, " ", fn {keys, pause} ->
+            "printf '#{String.replace(keys, "\\[", "[")}'; sleep #{pause / 1000};"
+          end)
+
+        quoted = "(sleep 1; #{sends} sleep 2; printf '\\021') | #{script_command}"
 
         {output, 0} = System.cmd("sh", ["-c", quoted], stderr_to_stdout: true)
         output

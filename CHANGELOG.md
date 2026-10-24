@@ -14,6 +14,13 @@ versioning once published.
   `catppuccin` palettes.
 - `Elui.Widgets.Modal`, `FilterableSelect`, and `TextArea` for compact,
   app-owned editing workflows.
+- `Elui.Fuzzy`, an fzf-style matcher (characters in order, every word,
+  smart case, best match first), ported from vibex's `vibex pick`.
+- `FilterableSelect` options: `matcher: :fuzzy` (`Elui.Fuzzy` ranking),
+  `create: true` (a `+ create "TEXT"` row when the filter names no item,
+  answered as `{:create, text}`; label set by `:create_label`), and
+  `:match_style` for the matched characters. `State.matches/1` returns each
+  item with its matched byte offsets.
 - Opt-in word wrapping for `Elui.Widgets.TextArea`, including wrapped cursor
   placement, visual-row scrolling, and safe oversized-token wrapping.
 - `Elui.Widgets.ToggleGrid` for cell-focused boolean matrices with
@@ -45,6 +52,10 @@ versioning once published.
 - Raw terminal mode now disables software flow control so Ctrl shortcuts reach
   applications and restores the original terminal state on exit.
 - Empty `TextArea` placeholders retain their first grapheme under the cursor.
+- `FilterableSelect` lets `j` and `k` be typed into the filter; the selection
+  moves with Up/Down, Ctrl-N/Ctrl-P, or Ctrl-J/Ctrl-K, and characters typed
+  with Ctrl or Alt no longer go into the filter. The substring matcher
+  ignores the filter's surrounding spaces.
 
 ### Security
 

@@ -32,6 +32,7 @@ defmodule Elui do
   `Elui.Widgets.LineGauge`, `Elui.Widgets.BarChart`,
   `Elui.Widgets.Sparkline`, `Elui.Widgets.Chart`,
   `Elui.Widgets.Canvas`, `Elui.Widgets.Calendar`,
+  `Elui.Widgets.DatePicker`,
   `Elui.Widgets.Scrollbar`, `Elui.Widgets.Clear`,
   `Elui.Widgets.ToggleGrid`, `Elui.Widgets.WeekGrid`,
   `Elui.Widgets.Modal`, `Elui.Widgets.TextArea`,

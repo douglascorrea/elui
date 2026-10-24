@@ -26,6 +26,12 @@ versioning once published.
   Left/Right folding, paging, optional wrapping of long labels, `hit/4` for
   mouse clicks on rows and fold markers, `label_area/4` for inline editors,
   and `prune/2` for filtering with ancestors kept.
+- `Elui.Widgets.DatePicker`, a month calendar with a cursor (arrows move a
+  day or a week, Page Up/Down a month) and a line for typed dates that the
+  calendar follows: ISO dates, `today`, `tomorrow`, weekdays, `next week`,
+  `next month`, `+3d`/`-1w`/`2m`/`1y`, `nov 15`, and a day of the month.
+  `DatePicker.parse/2` is usable on its own; `DatePicker.size/1` sizes its
+  modal.
 - Opt-in word wrapping for `Elui.Widgets.TextArea`, including wrapped cursor
   placement, visual-row scrolling, and safe oversized-token wrapping.
 - `Elui.Widgets.ToggleGrid` for cell-focused boolean matrices with

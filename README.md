@@ -38,7 +38,7 @@ changes can still happen before a stable release.
   calendars, scrollbars, sparklines, bar charts, and clearing regions
 - Semantic themes, including colorful truecolor palettes, plus production app
   primitives for modals, filterable selects, word-wrapped multiline editing,
-  toggle matrices, and responsive week layouts
+  foldable trees, toggle matrices, and responsive week layouts
 - Raw keyboard input and SGR mouse capture
 - Examples that port every app from Ratatui's `examples/apps/`
 - OTP-friendly examples that show supervisors, GenServers, BEAM nodes, remote

@@ -23,6 +23,7 @@ defmodule Elui do
       terminals, `Elui.Backend.Test` for tests)
     * `Elui.Input` - raw-mode keyboard events
     * `Elui.App` - an Elm-style run loop
+    * `Elui.Fuzzy` - fzf-style matching for pickers
 
   ## Widgets
 
@@ -31,10 +32,11 @@ defmodule Elui do
   `Elui.Widgets.LineGauge`, `Elui.Widgets.BarChart`,
   `Elui.Widgets.Sparkline`, `Elui.Widgets.Chart`,
   `Elui.Widgets.Canvas`, `Elui.Widgets.Calendar`,
+  `Elui.Widgets.DatePicker`,
   `Elui.Widgets.Scrollbar`, `Elui.Widgets.Clear`,
   `Elui.Widgets.ToggleGrid`, `Elui.Widgets.WeekGrid`,
-  `Elui.Widgets.Modal`, `Elui.Widgets.TextArea`, and
-  `Elui.Widgets.FilterableSelect`.
+  `Elui.Widgets.Modal`, `Elui.Widgets.TextArea`,
+  `Elui.Widgets.FilterableSelect`, and `Elui.Widgets.Tree`.
 
   ## Hello world
 

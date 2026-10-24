@@ -14,6 +14,24 @@ versioning once published.
   `catppuccin` palettes.
 - `Elui.Widgets.Modal`, `FilterableSelect`, and `TextArea` for compact,
   app-owned editing workflows.
+- `Elui.Fuzzy`, an fzf-style matcher (characters in order, every word,
+  smart case, best match first), ported from vibex's `vibex pick`.
+- `FilterableSelect` options: `matcher: :fuzzy` (`Elui.Fuzzy` ranking),
+  `create: true` (a `+ create "TEXT"` row when the filter names no item,
+  answered as `{:create, text}`; label set by `:create_label`), and
+  `:match_style` for the matched characters. `State.matches/1` returns each
+  item with its matched byte offsets.
+- `Elui.Widgets.Tree`, a tree of foldable items (like `tui-tree-widget`, but
+  starting expanded): selection by id that survives the tree being rebuilt,
+  Left/Right folding, paging, optional wrapping of long labels, `hit/4` for
+  mouse clicks on rows and fold markers, `label_area/4` for inline editors,
+  and `prune/2` for filtering with ancestors kept.
+- `Elui.Widgets.DatePicker`, a month calendar with a cursor (arrows move a
+  day or a week, Page Up/Down a month) and a line for typed dates that the
+  calendar follows: ISO dates, `today`, `tomorrow`, weekdays, `next week`,
+  `next month`, `+3d`/`-1w`/`2m`/`1y`, `nov 15`, and a day of the month.
+  `DatePicker.parse/2` is usable on its own; `DatePicker.size/1` sizes its
+  modal.
 - Opt-in word wrapping for `Elui.Widgets.TextArea`, including wrapped cursor
   placement, visual-row scrolling, and safe oversized-token wrapping.
 - `Elui.Widgets.ToggleGrid` for cell-focused boolean matrices with
@@ -45,6 +63,10 @@ versioning once published.
 - Raw terminal mode now disables software flow control so Ctrl shortcuts reach
   applications and restores the original terminal state on exit.
 - Empty `TextArea` placeholders retain their first grapheme under the cursor.
+- `FilterableSelect` lets `j` and `k` be typed into the filter; the selection
+  moves with Up/Down, Ctrl-N/Ctrl-P, or Ctrl-J/Ctrl-K, and characters typed
+  with Ctrl or Alt no longer go into the filter. The substring matcher
+  ignores the filter's surrounding spaces.
 
 ### Security
 

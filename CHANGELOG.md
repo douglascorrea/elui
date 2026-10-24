@@ -21,6 +21,11 @@ versioning once published.
   answered as `{:create, text}`; label set by `:create_label`), and
   `:match_style` for the matched characters. `State.matches/1` returns each
   item with its matched byte offsets.
+- `Elui.Widgets.Tree`, a tree of foldable items (like `tui-tree-widget`, but
+  starting expanded): selection by id that survives the tree being rebuilt,
+  Left/Right folding, paging, optional wrapping of long labels, `hit/4` for
+  mouse clicks on rows and fold markers, `label_area/4` for inline editors,
+  and `prune/2` for filtering with ancestors kept.
 - Opt-in word wrapping for `Elui.Widgets.TextArea`, including wrapped cursor
   placement, visual-row scrolling, and safe oversized-token wrapping.
 - `Elui.Widgets.ToggleGrid` for cell-focused boolean matrices with

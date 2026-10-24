@@ -34,8 +34,8 @@ defmodule Elui do
   `Elui.Widgets.Canvas`, `Elui.Widgets.Calendar`,
   `Elui.Widgets.Scrollbar`, `Elui.Widgets.Clear`,
   `Elui.Widgets.ToggleGrid`, `Elui.Widgets.WeekGrid`,
-  `Elui.Widgets.Modal`, `Elui.Widgets.TextArea`, and
-  `Elui.Widgets.FilterableSelect`.
+  `Elui.Widgets.Modal`, `Elui.Widgets.TextArea`,
+  `Elui.Widgets.FilterableSelect`, and `Elui.Widgets.Tree`.
 
   ## Hello world
 

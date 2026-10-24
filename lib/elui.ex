@@ -23,6 +23,7 @@ defmodule Elui do
       terminals, `Elui.Backend.Test` for tests)
     * `Elui.Input` - raw-mode keyboard events
     * `Elui.App` - an Elm-style run loop
+    * `Elui.Fuzzy` - fzf-style matching for pickers
 
   ## Widgets
 

@@ -35,7 +35,7 @@ defmodule Elui do
   `Elui.Widgets.DatePicker`,
   `Elui.Widgets.Scrollbar`, `Elui.Widgets.Clear`,
   `Elui.Widgets.ToggleGrid`, `Elui.Widgets.WeekGrid`,
-  `Elui.Widgets.Modal`, `Elui.Widgets.TextArea`,
+  `Elui.Widgets.Modal`, `Elui.Widgets.TextInput`, `Elui.Widgets.TextArea`,
   `Elui.Widgets.FilterableSelect`, and `Elui.Widgets.Tree`.
 
   ## Hello world

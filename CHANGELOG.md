@@ -32,6 +32,12 @@ versioning once published.
   `next month`, `+3d`/`-1w`/`2m`/`1y`, `nov 15`, and a day of the month.
   `DatePicker.parse/2` is usable on its own; `DatePicker.size/1` sizes its
   modal.
+- `Elui.Widgets.TextInput`, a one-line text field: a prompt, a placeholder
+  while empty, a reversed cursor cell, and sideways scrolling that keeps the
+  cursor in view without splitting wide characters. Editing works by grapheme,
+  with readline and macOS keys (Ctrl-A/E/B/F/H/D/W/U/K, Alt-B/F/D,
+  Alt/Ctrl+Left/Right, Alt-Backspace); Enter submits and Esc cancels.
+  `TextInput.cursor_position/3` gives the cell for the terminal's own cursor.
 - Opt-in word wrapping for `Elui.Widgets.TextArea`, including wrapped cursor
   placement, visual-row scrolling, and safe oversized-token wrapping.
 - `Elui.Widgets.ToggleGrid` for cell-focused boolean matrices with

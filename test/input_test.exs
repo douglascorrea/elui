@@ -126,4 +126,38 @@ defmodule Elui.InputTest do
              ]
     end
   end
+
+  describe "incomplete sequences" do
+    test "only a lone ESC waits the short escape time" do
+      assert Input.wait_time("", 25, 500) == :infinity
+      assert Input.wait_time("\e", 25, 500) == 25
+      assert Input.wait_time("\e[", 25, 500) == 500
+      assert Input.wait_time("\eO", 25, 500) == 500
+      assert Input.wait_time("\e[<35;10", 25, 500) == 500
+      # A longer escape time is never cut short by the sequence time.
+      assert Input.wait_time("\e[<35;10", 800, 500) == 800
+    end
+
+    test "a lone ESC that nothing follows is the Escape key" do
+      assert Input.expire("\e") == [{:key, :esc, []}]
+      assert Input.expire("") == []
+    end
+
+    test "a bare introducer is the Alt key it also spells" do
+      assert Input.expire("\e[") == [{:key, {:char, "["}, [:alt]}]
+      assert Input.expire("\eO") == [{:key, {:char, "O"}, [:alt]}]
+    end
+
+    test "a sequence cut off in its parameters is dropped, not typed" do
+      # The head of a mouse report whose tail never came: typing it would
+      # send an application Escape followed by `[<35;10`.
+      assert Input.expire("\e[<35;10") == []
+      assert Input.expire("\e[1;") == []
+    end
+
+    test "a sequence completed by the next chunk parses whole" do
+      assert {[], rest} = Input.parse("\e[<35;1")
+      assert Input.parse(rest <> "0;5M") == {[{:mouse, :move, 9, 4, []}], ""}
+    end
+  end
 end

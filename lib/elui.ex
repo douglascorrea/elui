@@ -24,6 +24,7 @@ defmodule Elui do
     * `Elui.Input` - raw-mode keyboard events
     * `Elui.App` - an Elm-style run loop
     * `Elui.Fuzzy` - fzf-style matching for pickers
+    * `Elui.Markdown` - a Markdown parser for `Elui.Widgets.Markdown`
 
   ## Widgets
 
@@ -36,7 +37,8 @@ defmodule Elui do
   `Elui.Widgets.Scrollbar`, `Elui.Widgets.Clear`,
   `Elui.Widgets.ToggleGrid`, `Elui.Widgets.WeekGrid`,
   `Elui.Widgets.Modal`, `Elui.Widgets.TextInput`, `Elui.Widgets.TextArea`,
-  `Elui.Widgets.FilterableSelect`, and `Elui.Widgets.Tree`.
+  `Elui.Widgets.FilterableSelect`, `Elui.Widgets.Tree`, and
+  `Elui.Widgets.Markdown`.
 
   ## Hello world
 

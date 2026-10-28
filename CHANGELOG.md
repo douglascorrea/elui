@@ -38,6 +38,16 @@ versioning once published.
   with readline and macOS keys (Ctrl-A/E/B/F/H/D/W/U/K, Alt-B/F/D,
   Alt/Ctrl+Left/Right, Alt-Backspace); Enter submits and Esc cancels.
   `TextInput.cursor_position/3` gives the cell for the terminal's own cursor.
+- `Elui.Widgets.Markdown`, which draws Markdown word-wrapped to its area:
+  headings, emphasis, strikethrough, inline and fenced code, links (with their
+  URL, or not), nested and task lists, quotes, tables and rules. List items
+  hang under their text, quote bars run down every line, and a table too wide
+  for the area narrows its widest columns and wraps their cells. Styles come
+  from `:styles` or `Markdown.theme_styles/1`. `:scroll` skips rows, and
+  `line_count/2` and `to_text/2` give the laid-out lines for a width.
+- `Elui.Markdown`, the dependency-free parser behind it: CommonMark blocks and
+  inlines (including reference links, entities and setext headings) plus
+  GitHub's tables, task lists and strikethrough, returned as plain tuples.
 - Opt-in word wrapping for `Elui.Widgets.TextArea`, including wrapped cursor
   placement, visual-row scrolling, and safe oversized-token wrapping.
 - `Elui.Widgets.ToggleGrid` for cell-focused boolean matrices with
@@ -77,6 +87,9 @@ versioning once published.
   moves with Up/Down, Ctrl-N/Ctrl-P, or Ctrl-J/Ctrl-K, and characters typed
   with Ctrl or Alt no longer go into the filter. The substring matcher
   ignores the filter's surrounding spaces.
+- `Paragraph` wrapping drops the spaces a line breaks at instead of keeping
+  them at the end of the line, where a styled background showed them, as
+  ratatui does. It shares its wrapper with `Markdown`.
 
 ### Security
 

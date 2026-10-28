@@ -16,7 +16,7 @@ defmodule Elui.Widgets.Paragraph do
   alias Elui.Layout.Rect
   alias Elui.Style
   alias Elui.Text
-  alias Elui.Text.{Line, Span, Width}
+  alias Elui.Text.{Line, Span, Width, Wrap}
   alias Elui.Widgets.Block
 
   defstruct text: %Text{},
@@ -146,95 +146,12 @@ defmodule Elui.Widgets.Paragraph do
   defp wrap_line(line, wrap, width) when width > 0 do
     trim = wrap == true || Keyword.get(List.wrap(wrap), :trim, false)
 
-    line
-    |> line_to_styled_graphemes()
-    |> break_words(width, trim)
-    |> Enum.map(fn graphemes ->
-      spans = regroup_spans(graphemes)
-      %Line{spans: spans, style: line.style, alignment: line.alignment}
-    end)
-    |> case do
-      [] -> [%Line{style: line.style, alignment: line.alignment}]
-      lines -> lines
-    end
+    line.spans
+    |> Wrap.spans(width, trim)
+    |> Enum.map(&%Line{spans: &1, style: line.style, alignment: line.alignment})
   end
 
   defp wrap_line(line, _wrap, _width), do: [line]
-
-  defp line_to_styled_graphemes(%Line{} = line) do
-    Enum.flat_map(line.spans, fn span ->
-      span.content
-      |> String.graphemes()
-      |> Enum.map(fn g -> {g, span.style} end)
-    end)
-  end
-
-  # Greedy word wrapping over a list of {grapheme, style} pairs.
-  defp break_words(graphemes, width, trim) do
-    words = chunk_words(graphemes)
-
-    {lines, current, _w} =
-      Enum.reduce(words, {[], [], 0}, fn word, {lines, current, w} ->
-        word_width = word_width(word)
-        space? = whitespace_word?(word)
-
-        cond do
-          # Trimmed leading whitespace at line start
-          trim and space? and current == [] ->
-            {lines, current, w}
-
-          w + word_width <= width ->
-            {lines, current ++ word, w + word_width}
-
-          space? ->
-            # Break line at whitespace; drop it when trimming.
-            {lines ++ [current], if(trim, do: [], else: []), 0}
-
-          word_width <= width ->
-            {lines ++ [current], word, word_width}
-
-          true ->
-            # Word longer than the line: hard-break it.
-            {lines2, current2, w2} = hard_break(word, width, lines ++ [current])
-            {lines2, current2, w2}
-        end
-      end)
-
-    lines = if current != [] or lines == [], do: lines ++ [current], else: lines
-    Enum.reject(lines, &(&1 == [] and length(lines) > 1))
-  end
-
-  defp hard_break(word, width, lines) do
-    Enum.reduce(word, {lines, [], 0}, fn {g, _style} = pair, {ls, cur, w} ->
-      gw = Width.grapheme_width(g)
-
-      if w + gw > width do
-        {ls ++ [cur], [pair], gw}
-      else
-        {ls, cur ++ [pair], w + gw}
-      end
-    end)
-  end
-
-  defp chunk_words(graphemes) do
-    graphemes
-    |> Enum.chunk_by(fn {g, _} -> g == " " end)
-  end
-
-  defp whitespace_word?(word), do: Enum.all?(word, fn {g, _} -> g == " " end)
-
-  defp word_width(word) do
-    Enum.reduce(word, 0, fn {g, _}, acc -> acc + Width.grapheme_width(g) end)
-  end
-
-  defp regroup_spans(graphemes) do
-    graphemes
-    |> Enum.chunk_by(fn {_g, style} -> style end)
-    |> Enum.map(fn chunk ->
-      {_, style} = hd(chunk)
-      %Span{content: Enum.map_join(chunk, fn {g, _} -> g end), style: style}
-    end)
-  end
 
   defimpl Elui.Widget do
     def render(paragraph, area, buffer) do

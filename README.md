@@ -34,6 +34,8 @@ changes can still happen before a stable release.
   message events
 - Layout constraints with flex alignment modes
 - Styled text, spans, paragraphs, wrapping, scrolling, and alignment
+- Markdown rendering (CommonMark plus GitHub tables, task lists, and
+  strikethrough) with a dependency-free parser
 - Widgets for blocks, lists, tables, tabs, gauges, charts, canvas drawing,
   calendars, scrollbars, sparklines, bar charts, and clearing regions
 - Semantic themes, including colorful truecolor palettes, plus production app
@@ -149,6 +151,7 @@ Useful starting points:
 | Canvas | `mix run examples/canvas.exs` | Braille canvas shapes and animation |
 | Charts | `mix run examples/chart.exs` | Datasets, axes, legends, and plotting |
 | Beam Lab | `mix run examples/beam_lab.exs` | Supervisors, GenServers, BEAM nodes, and streamed GitHub events |
+| Markdown | `mix run examples/markdown.exs [FILE]` | A scrolling Markdown viewer |
 
 Elui also includes Elixir ports of every Ratatui app under
 `ratatui/examples/apps/`:

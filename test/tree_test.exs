@@ -6,6 +6,7 @@ defmodule Elui.Widgets.TreeTest do
   alias Elui.Frame
   alias Elui.Layout.Rect
   alias Elui.Terminal
+  alias Elui.Text.{Line, Span}
   alias Elui.Widgets.Tree
   alias Elui.Widgets.Tree.{Item, State}
 
@@ -162,6 +163,39 @@ defmodule Elui.Widgets.TreeTest do
       assert Enum.at(lines, 0) == "  ▾ inbox           "
       assert Buffer.get(buffer, 19, 3).style.bg == :blue
       assert Buffer.get(buffer, 19, 2).style.bg != :blue
+    end
+
+    test "the highlight's colours win over the label's on the selected row, its modifiers add" do
+      label =
+        Line.new([Span.styled("pick", fg: :yellow, add_modifier: [:bold]), Span.raw(" a name")])
+
+      items = [Item.new(:inbox, "inbox", [Item.new(3, label)])]
+
+      {_lines, buffer, _} =
+        draw(
+          Tree.new(items, highlight_style: [fg: :black, bg: :yellow]),
+          State.new(selected: 3),
+          20,
+          2
+        )
+
+      assert {Buffer.get(buffer, 4, 1).style.fg, Buffer.get(buffer, 4, 1).style.bg} ==
+               {:black, :yellow}
+
+      assert :bold in Buffer.get(buffer, 4, 1).style.add_modifier
+
+      # A highlight that sets only the background keeps the label's colour.
+      {_lines, buffer, _} =
+        draw(Tree.new(items, highlight_style: [bg: :blue]), State.new(selected: 3), 20, 2)
+
+      assert {Buffer.get(buffer, 4, 1).style.fg, Buffer.get(buffer, 4, 1).style.bg} ==
+               {:yellow, :blue}
+
+      # Unselected rows keep their own colours.
+      {_lines, buffer, _} =
+        draw(Tree.new(items, highlight_style: [fg: :black]), State.new(selected: :inbox), 20, 2)
+
+      assert Buffer.get(buffer, 4, 1).style.fg == :yellow
     end
 
     test "custom symbols and a stateless render" do

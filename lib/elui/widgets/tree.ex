@@ -341,8 +341,9 @@ defmodule Elui.Widgets.Tree do
   @doc """
   Creates a tree from `Elui.Widgets.Tree.Item`s.
 
-  Options: `:block`, `:style`, `:highlight_style` (the selected row),
-  `:marker_style` (fold markers), `:highlight_symbol` (before the
+  Options: `:block`, `:style`, `:highlight_style` (the selected row,
+  drawn over it as ratatui's `List` does: its colours win over the
+  label's own, its modifiers add to them), `:marker_style` (fold markers), `:highlight_symbol` (before the
   selected row), `:indent` (columns per level, default 2), `:symbols` (a
   map or keyword with `:expanded`, `:collapsed` and `:leaf` markers,
   default `"▾ "`, `"▸ "` and `"  "`), and `:wrap` (wrap long labels).
@@ -539,18 +540,25 @@ defmodule Elui.Widgets.Tree do
         buffer
       end
 
-    if row.label_width > 0 do
-      label = row.item.label |> Text.patch_style(row.item.style) |> Text.patch_style(row_style)
-      paragraph = Paragraph.new(label, wrap: if(tree.wrap, do: [trim: true]), style: row_style)
+    buffer =
+      if row.label_width > 0 do
+        label = row.item.label |> Text.patch_style(row.item.style) |> Text.patch_style(row_style)
+        paragraph = Paragraph.new(label, wrap: if(tree.wrap, do: [trim: true]), style: row_style)
 
-      Elui.Widget.render(
-        paragraph,
-        Rect.new(row.label_x, row.y, row.label_width, row.height),
+        Elui.Widget.render(
+          paragraph,
+          Rect.new(row.label_x, row.y, row.label_width, row.height),
+          buffer
+        )
+      else
         buffer
-      )
-    else
-      buffer
-    end
+      end
+
+    # Over the label, so a label coloured like the highlight's background
+    # still reads on the selected row.
+    if selected?,
+      do: Buffer.set_style(buffer, Rect.new(inner.x, row.y, inner.width, row.height), row_style),
+      else: buffer
   end
 
   defimpl Elui.Widget do

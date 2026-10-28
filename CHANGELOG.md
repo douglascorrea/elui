@@ -48,6 +48,18 @@ versioning once published.
 - `Elui.Markdown`, the dependency-free parser behind it: CommonMark blocks and
   inlines (including reference links, entities and setext headings) plus
   GitHub's tables, task lists and strikethrough, returned as plain tuples.
+- `Elui.Mermaid`, which draws Mermaid diagrams as text in box-drawing
+  characters (or ASCII), with no JavaScript and no browser: flowcharts in
+  every direction, laid out in layers the way Mermaid's dagre does it (node
+  shapes, solid, thick, dotted and invisible links with arrows, crosses or
+  circles, link labels and lengths, chains and `&` groups, nested subgraphs,
+  cycles and self-loops), and sequence diagrams (participants and actors,
+  every message arrow, self messages, notes, activations, `autonumber`, and
+  `loop`/`alt`/`opt`/`par`/`critical`/`break`/`rect` blocks). Labels take
+  `<br>`, entity codes and markdown strings, and wrap narrower to fit a
+  `:width`; a diagram too large to draw is an error, not a memory spike. `Elui.Widgets.Mermaid` draws one in an area, and
+  `Elui.Widgets.Markdown` draws ` ```mermaid ` blocks as diagrams when they
+  fit (`mermaid: false` keeps the source).
 - Opt-in word wrapping for `Elui.Widgets.TextArea`, including wrapped cursor
   placement, visual-row scrolling, and safe oversized-token wrapping.
 - `Elui.Widgets.ToggleGrid` for cell-focused boolean matrices with

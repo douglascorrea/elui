@@ -62,6 +62,10 @@ versioning once published.
 
 ### Fixed
 
+- `Tree`'s `highlight_style` is drawn over the selected row, as ratatui's
+  `List` does: its colours win over the label's own and its modifiers add to
+  them. Before, a label coloured like the highlight's background (an
+  accent-coloured title on an accent highlight) vanished on the selected row.
 - Text and block borders now preserve inherited cell attributes that their
   local styles do not override, enabling reliable full-viewport themes.
 - Visible `Paragraph` glyphs now inherit the widget's base style while more

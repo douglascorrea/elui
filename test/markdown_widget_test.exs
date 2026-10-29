@@ -122,6 +122,18 @@ defmodule Elui.Widgets.MarkdownTest do
              ]
     end
 
+    test "mermaid blocks are diagrams; their source when they don't fit or are turned off" do
+      markdown = "```mermaid\ngraph LR\n  A --> B\n```"
+      diagram = ["  ┌───┐    ┌───┐", "  │ A ├───►│ B │", "  └───┘    └───┘"]
+      source = ["  graph LR", "    A --> B"]
+
+      assert lines(markdown, 40) == diagram
+      assert lines(markdown, 12) == source
+      assert lines(markdown, 40, mermaid: false) == source
+      assert lines("```mermaid\nnot a diagram\n```", 40) == ["  not a diagram"]
+      assert lines(markdown, 40, mermaid: [ascii: true]) |> hd() == "  +---+    +---+"
+    end
+
     test "nesting deeper than the width still lays out" do
       assert lines("> > > ***\n\n- > ---", 3) == ["│ │ │ ─", "", "• │ ─"]
     end

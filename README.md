@@ -36,6 +36,8 @@ changes can still happen before a stable release.
 - Styled text, spans, paragraphs, wrapping, scrolling, and alignment
 - Markdown rendering (CommonMark plus GitHub tables, task lists, and
   strikethrough) with a dependency-free parser
+- Mermaid flowcharts and sequence diagrams drawn as text, laid out without
+  JavaScript, on their own or inside Markdown
 - Widgets for blocks, lists, tables, tabs, gauges, charts, canvas drawing,
   calendars, scrollbars, sparklines, bar charts, and clearing regions
 - Semantic themes, including colorful truecolor palettes, plus production app
@@ -152,6 +154,7 @@ Useful starting points:
 | Charts | `mix run examples/chart.exs` | Datasets, axes, legends, and plotting |
 | Beam Lab | `mix run examples/beam_lab.exs` | Supervisors, GenServers, BEAM nodes, and streamed GitHub events |
 | Markdown | `mix run examples/markdown.exs [FILE]` | A scrolling Markdown viewer |
+| Mermaid | `mix run examples/mermaid.exs [FILE...]` | Flowcharts and sequence diagrams as text |
 
 Elui also includes Elixir ports of every Ratatui app under
 `ratatui/examples/apps/`:

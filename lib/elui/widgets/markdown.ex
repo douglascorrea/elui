@@ -1,11 +1,13 @@
 defmodule Elui.Widgets.Markdown do
   @moduledoc """
   Draws Markdown: headings, emphasis, code, links, lists and task lists,
-  quotes, tables and rules, word-wrapped to the area's width.
+  quotes, tables and rules, word-wrapped to the area's width, and
+  ` ```mermaid ` blocks as diagrams (`Elui.Mermaid`).
 
   Wrapping keeps each line in its place: a list item's lines hang under
   its text, every line of a quote keeps its bar, and a table too wide for
-  the area narrows its widest columns and wraps their cells.
+  the area narrows its widest columns and wraps their cells. A diagram
+  too wide even with its labels wrapped shows its source instead.
 
   ## Example
 
@@ -51,7 +53,13 @@ defmodule Elui.Widgets.Markdown do
   alias Elui.Theme
   alias Elui.Widgets.Block
 
-  defstruct blocks: [], block: nil, style: %Style{}, styles: %{}, scroll: 0, show_urls: true
+  defstruct blocks: [],
+            block: nil,
+            style: %Style{},
+            styles: %{},
+            scroll: 0,
+            show_urls: true,
+            mermaid: []
 
   @type t :: %__MODULE__{}
 
@@ -85,6 +93,10 @@ defmodule Elui.Widgets.Markdown do
     * `:scroll` - rows to skip from the top (default 0)
     * `:show_urls` - shows a link's URL after its text, as
       `text (url)`, unless the text is the URL (default `true`)
+    * `:mermaid` - `false` shows ` ```mermaid ` blocks as code; a keyword
+      list passes `:styles`, `:ascii` and `:max_label_width` to
+      `Elui.Mermaid.render/2` (default `[]`: diagrams in their default
+      styles)
   """
   @spec new(String.t() | [Elui.Markdown.block()], Keyword.t()) :: t()
   def new(markdown, opts \\ []) do
@@ -104,9 +116,16 @@ defmodule Elui.Widgets.Markdown do
       style: Style.to_style(Keyword.get(opts, :style)),
       styles: styles,
       scroll: scroll(Keyword.get(opts, :scroll, 0)),
-      show_urls: Keyword.get(opts, :show_urls, true)
+      show_urls: Keyword.get(opts, :show_urls, true),
+      mermaid: mermaid(Keyword.get(opts, :mermaid, []))
     }
   end
+
+  defp mermaid(true), do: []
+  defp mermaid(false), do: false
+
+  defp mermaid(opts) when is_list(opts),
+    do: Keyword.take(opts, [:styles, :ascii, :max_label_width])
 
   defp scroll(rows) when is_integer(rows) and rows >= 0, do: rows
 
@@ -167,7 +186,13 @@ defmodule Elui.Widgets.Markdown do
 
   # Lazy, so drawing lays out only the blocks above the area's bottom edge.
   defp lines(markdown, width) do
-    context = %{styles: markdown.styles, show_urls: markdown.show_urls, base: %Style{}, depth: 0}
+    context = %{
+      styles: markdown.styles,
+      show_urls: markdown.show_urls,
+      mermaid: markdown.mermaid,
+      base: %Style{},
+      depth: 0
+    }
 
     markdown.blocks
     |> Stream.map(&block(&1, max(width, 1), context))
@@ -197,6 +222,22 @@ defmodule Elui.Widgets.Markdown do
     |> spans(style(context, :heading), context)
     |> wrap(width - Span.width(marker))
     |> hang(marker)
+  end
+
+  # A diagram, indented as code is; its source when it doesn't fit.
+  defp block({:code_block, "mermaid", lines}, width, %{mermaid: opts} = context)
+       when opts != false do
+    room = width - 2
+
+    case Elui.Mermaid.render(Enum.join(lines, "\n"), Keyword.put(opts, :width, room)) do
+      {:ok, diagram} ->
+        if diagram != [] and Enum.all?(diagram, &(Line.width(&1) <= room)),
+          do: Enum.map(diagram, &prefix(&1, Span.raw("  "))),
+          else: block({:code_block, "", lines}, width, context)
+
+      {:error, _message} ->
+        block({:code_block, "", lines}, width, context)
+    end
   end
 
   defp block({:code_block, _language, lines}, width, context) do

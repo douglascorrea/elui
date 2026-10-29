@@ -39,6 +39,7 @@ defmodule ExamplesCompileTest do
   @native_examples ~w(
     beam-lab
     markdown
+    mermaid
   )
 
   test "every Ratatui app has a loadable Elui example" do

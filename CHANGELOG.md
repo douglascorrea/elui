@@ -5,7 +5,7 @@ All notable changes to Elui will be documented in this file.
 The format is inspired by Keep a Changelog, and this project uses semantic
 versioning once published.
 
-## Unreleased
+## 0.1.0 - 2026-10-29
 
 ### Added
 
@@ -69,7 +69,8 @@ versioning once published.
 - Ratatui-inspired terminal rendering primitives for buffers, frames, styles,
   layout, widgets, and test backends.
 - `Elui.App`, an Elm-style runner for keyboard, mouse, tick, resize, and
-  process-message events.
+  process-message events. `input: false` runs an app on the messages sent to
+  its process alone, for tests and for hosts that read input themselves.
 - Example applications ported from Ratatui's `examples/apps/` directory.
 - BEAM Lab example showing supervisors, GenServers, BEAM node discovery,
   remote-node connection, and streamed GitHub events.
@@ -84,6 +85,16 @@ versioning once published.
 
 ### Fixed
 
+- `Elui.App` keeps up with fast typing when a frame takes longer than a
+  keystroke. It drew a whole frame for every event, so on a slow machine each
+  queued key added a frame of lag. Now the events that arrive during a frame
+  are applied together before the next one, in arrival order and up to 64 at
+  a time; an update that quits still stops at its event.
+- Frames draw in about half the time, with the same output. `Style.patch/2`
+  skips the modifier set arithmetic when either style has no modifiers,
+  `Buffer.set_style/3` reuses the patch across cells that share a style and
+  leaves cells alone for an empty style, and `Buffer.diff/2` no longer builds
+  a list of every position first.
 - `Tree`'s `highlight_style` is drawn over the selected row, as ratatui's
   `List` does: its colours win over the label's own and its modifiers add to
   them. Before, a label coloured like the highlight's background (an

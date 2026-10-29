@@ -47,7 +47,8 @@ defmodule Elui.Mermaid do
   alias Elui.Style
   alias Elui.Text.{Line, Span}
 
-  @type diagram :: {:flowchart, Flowchart.t()} | {:sequence, Sequence.t()}
+  @typedoc "A parsed diagram, from `parse/1`, for `render/2`."
+  @type diagram :: {:flowchart, term()} | {:sequence, term()}
 
   @default_styles %{
     node: [fg: :cyan],

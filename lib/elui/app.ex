@@ -43,6 +43,9 @@ defmodule Elui.App do
   alias Elui.Input
   alias Elui.Terminal
 
+  # Most events applied between two frames.
+  @max_batch 64
+
   @type model :: term()
   @type event ::
           {:key, term(), [atom()]}
@@ -71,6 +74,15 @@ defmodule Elui.App do
     * `:tick_rate` - milliseconds between `:tick` events (default 250)
     * `:terminal` - options forwarded to `Elui.Terminal.new/1`
     * `:mouse` - enables SGR mouse capture while the app runs (default `false`)
+    * `:input` - reads keys and mouse from the terminal (default `true`).
+      With `false` the app gets only the messages sent to its process,
+      `{:elui_event, event}` among them, as in a test or a host that reads
+      input itself
+
+  Events that arrive while a frame is drawn are applied together before the
+  next frame, in the order they arrived and up to 64 at a time, so an app
+  keeps up with fast typing even when a frame takes longer than a keystroke.
+  An update that quits stops the batch, and later events are left unread.
 
   Returns the final model.
   """
@@ -79,7 +91,7 @@ defmodule Elui.App do
     tick_rate = Keyword.get(opts, :tick_rate, 250)
     mouse? = Keyword.get(opts, :mouse, false)
     terminal = Terminal.new(Keyword.get(opts, :terminal, []))
-    input = Input.start(self(), mouse: mouse?)
+    input = if Keyword.get(opts, :input, true), do: Input.start(self(), mouse: mouse?)
 
     model = module.init(opts)
     area = Terminal.area(terminal)
@@ -92,7 +104,7 @@ defmodule Elui.App do
       end
     after
       Terminal.restore(terminal)
-      Input.stop(input)
+      if input, do: Input.stop(input)
     end
   end
 
@@ -101,11 +113,9 @@ defmodule Elui.App do
     {terminal, _} = Terminal.draw(terminal, fn frame -> module.view(model, frame) end)
 
     event =
-      receive do
-        {:elui_event, event} -> event
-        message -> {:message, message}
-      after
-        tick_rate -> :tick
+      case next_event(tick_rate) do
+        {:ok, event} -> event
+        :timeout -> :tick
       end
 
     # Detect resizes between frames so apps can react to them.
@@ -115,9 +125,37 @@ defmodule Elui.App do
         area -> [{:resize, area.width, area.height}, event]
       end
 
-    case apply_events(module, model, events) do
+    with {:continue, model} <- apply_events(module, model, events),
+         {:continue, model} <- apply_queued(module, model, @max_batch - 1) do
+      loop(module, model, terminal, tick_rate)
+    else
       {:quit, final} -> final
-      {:continue, model} -> loop(module, model, terminal, tick_rate)
+    end
+  end
+
+  # Applies the events already waiting, in arrival order and without waiting
+  # for more, so a burst of input costs one frame rather than one frame per
+  # event. At most `budget` of them, so a flood can't hold off drawing.
+  defp apply_queued(_module, model, 0), do: {:continue, model}
+
+  defp apply_queued(module, model, budget) do
+    case next_event(0) do
+      {:ok, event} ->
+        with {:continue, model} <- apply_events(module, model, [event]) do
+          apply_queued(module, model, budget - 1)
+        end
+
+      :timeout ->
+        {:continue, model}
+    end
+  end
+
+  defp next_event(timeout) do
+    receive do
+      {:elui_event, event} -> {:ok, event}
+      message -> {:ok, {:message, message}}
+    after
+      timeout -> :timeout
     end
   end
 

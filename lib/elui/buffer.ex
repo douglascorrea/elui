@@ -29,8 +29,13 @@ defmodule Elui.Buffer do
 
   @doc "Returns the cell at `{x, y}` (an empty cell when unset)."
   @spec get(t(), integer(), integer()) :: Cell.t()
-  def get(%__MODULE__{cells: cells}, x, y) do
-    Map.get(cells, {x, y}, Cell.empty())
+  def get(%__MODULE__{cells: cells}, x, y), do: cell_at(cells, {x, y})
+
+  defp cell_at(cells, pos) do
+    case cells do
+      %{^pos => cell} -> cell
+      %{} -> %Cell{}
+    end
   end
 
   @doc "Puts a cell at `{x, y}`, ignoring positions outside the buffer area."
@@ -154,14 +159,37 @@ defmodule Elui.Buffer do
   def set_style(%__MODULE__{} = buffer, %Rect{} = area, style) do
     style = Style.to_style(style)
     area = Rect.intersection(buffer.area, area)
+    %{buffer | cells: patch_cells(buffer.cells, area, style)}
+  end
 
-    cells =
-      Enum.reduce(Rect.positions(area), buffer.cells, fn pos, cells ->
-        cell = Map.get(cells, pos, Cell.empty())
-        Map.put(cells, pos, Cell.set_style(cell, style))
-      end)
+  # An empty style changes no cell; only the cells never set are filled in.
+  defp patch_cells(cells, area, %Style{} = style) when style == %Style{} do
+    for y <- area.y..(Rect.bottom(area) - 1)//1,
+        x <- area.x..(Rect.right(area) - 1)//1,
+        reduce: cells do
+      cells -> Map.put_new(cells, {x, y}, %Cell{})
+    end
+  end
 
-    %{buffer | cells: cells}
+  # Runs of cells share a style, so remember the last patch and reuse it.
+  defp patch_cells(cells, area, style) do
+    {cells, _from, _to} =
+      for y <- area.y..(Rect.bottom(area) - 1)//1,
+          x <- area.x..(Rect.right(area) - 1)//1,
+          reduce: {cells, %Style{}, Style.patch(%Style{}, style)} do
+        {cells, from, to} ->
+          pos = {x, y}
+          cell = cell_at(cells, pos)
+
+          if cell.style === from do
+            {Map.put(cells, pos, %{cell | style: to}), from, to}
+          else
+            patched = Style.patch(cell.style, style)
+            {Map.put(cells, pos, %{cell | style: patched}), cell.style, patched}
+          end
+      end
+
+    cells
   end
 
   @doc "Fills `area` with the given cell."
@@ -206,18 +234,22 @@ defmodule Elui.Buffer do
   """
   @spec diff(t(), t()) :: [{integer(), integer(), Cell.t()}]
   def diff(%__MODULE__{} = previous, %__MODULE__{} = next) do
-    next.area
-    |> Rect.positions()
-    |> Enum.flat_map(fn {x, y} ->
-      prev_cell = get(previous, x, y)
-      next_cell = get(next, x, y)
+    area = next.area
 
-      if prev_cell == next_cell or next_cell.skip do
-        []
-      else
-        [{x, y, next_cell}]
-      end
-    end)
+    # Walks the area backwards so prepending leaves the updates in order.
+    for y <- (Rect.bottom(area) - 1)..area.y//-1,
+        x <- (Rect.right(area) - 1)..area.x//-1,
+        reduce: [] do
+      updates ->
+        pos = {x, y}
+        next_cell = cell_at(next.cells, pos)
+
+        if next_cell.skip or cell_at(previous.cells, pos) == next_cell do
+          updates
+        else
+          [{x, y, next_cell} | updates]
+        end
+    end
   end
 
   @doc "Renders the buffer content as a list of plain strings (one per row), useful in tests."

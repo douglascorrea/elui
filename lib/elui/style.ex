@@ -123,19 +123,44 @@ defmodule Elui.Style do
   def patch(%__MODULE__{} = style, opts) when is_list(opts), do: patch(style, new(opts))
 
   def patch(%__MODULE__{} = style, %__MODULE__{} = other) do
+    {add_modifier, sub_modifier} = patch_modifiers(style, other)
+
     %__MODULE__{
       fg: other.fg || style.fg,
       bg: other.bg || style.bg,
       underline_color: other.underline_color || style.underline_color,
-      add_modifier:
-        style.add_modifier
-        |> MapSet.difference(other.sub_modifier)
-        |> MapSet.union(other.add_modifier),
-      sub_modifier:
-        style.sub_modifier
-        |> MapSet.difference(other.add_modifier)
-        |> MapSet.union(other.sub_modifier)
+      add_modifier: add_modifier,
+      sub_modifier: sub_modifier
     }
+  end
+
+  # Every widget patches every cell it covers, so skip the set arithmetic
+  # when one side has no modifiers: the result is then the other side's.
+  defp patch_modifiers(style, other) do
+    cond do
+      no_modifiers?(other) ->
+        {style.add_modifier, style.sub_modifier}
+
+      no_modifiers?(style) ->
+        {other.add_modifier, other.sub_modifier}
+
+      true ->
+        add =
+          style.add_modifier
+          |> MapSet.difference(other.sub_modifier)
+          |> MapSet.union(other.add_modifier)
+
+        sub =
+          style.sub_modifier
+          |> MapSet.difference(other.add_modifier)
+          |> MapSet.union(other.sub_modifier)
+
+        {add, sub}
+    end
+  end
+
+  defp no_modifiers?(style) do
+    MapSet.size(style.add_modifier) == 0 and MapSet.size(style.sub_modifier) == 0
   end
 
   @doc "Coerces keyword lists or nil into a `%Elui.Style{}`."

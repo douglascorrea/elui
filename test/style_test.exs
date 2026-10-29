@@ -26,6 +26,50 @@ defmodule Elui.StyleTest do
     refute MapSet.member?(patched.add_modifier, :bold)
   end
 
+  test "patch gives the same styles as the full set arithmetic" do
+    # The formula patch/2 used before its shortcuts for styles without
+    # modifiers; every pair must still come out the same.
+    reference = fn style, other ->
+      %Style{
+        fg: other.fg || style.fg,
+        bg: other.bg || style.bg,
+        underline_color: other.underline_color || style.underline_color,
+        add_modifier:
+          style.add_modifier
+          |> MapSet.difference(other.sub_modifier)
+          |> MapSet.union(other.add_modifier),
+        sub_modifier:
+          style.sub_modifier
+          |> MapSet.difference(other.add_modifier)
+          |> MapSet.union(other.sub_modifier)
+      }
+    end
+
+    modifiers = [[], [:bold], [:italic], [:bold, :italic], [:bold, :dim]]
+
+    styles =
+      [Style.reset(), Style.new(add_modifier: [:bold], sub_modifier: [:bold])] ++
+        for add <- modifiers,
+            sub <- modifiers,
+            colors <- [[], [fg: :red, bg: {:rgb, 1, 2, 3}], [underline_color: :blue]] do
+          Style.new([add_modifier: add, sub_modifier: sub] ++ colors)
+        end
+
+    plain? = &(MapSet.size(&1.add_modifier) == 0 and MapSet.size(&1.sub_modifier) == 0)
+    pairs = for style <- styles, other <- styles, do: {style, other}
+
+    # Each shortcut and the full path are all exercised.
+    assert Enum.any?(pairs, fn {s, o} -> plain?.(s) and plain?.(o) end)
+    assert Enum.any?(pairs, fn {s, o} -> not plain?.(s) and plain?.(o) end)
+    assert Enum.any?(pairs, fn {s, o} -> plain?.(s) and not plain?.(o) end)
+    assert Enum.any?(pairs, fn {s, o} -> not plain?.(s) and not plain?.(o) end)
+
+    for {style, other} <- pairs do
+      assert Style.patch(style, other) === reference.(style, other),
+             "patch(#{inspect(style)}, #{inspect(other)})"
+    end
+  end
+
   test "fluent helpers" do
     style = Style.new() |> Style.fg(:red) |> Style.bold() |> Style.italic()
     assert style.fg == :red

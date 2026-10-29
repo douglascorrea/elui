@@ -25,6 +25,8 @@ defmodule Elui do
     * `Elui.App` - an Elm-style run loop
     * `Elui.Fuzzy` - fzf-style matching for pickers
     * `Elui.Markdown` - a Markdown parser for `Elui.Widgets.Markdown`
+    * `Elui.Mermaid` - Mermaid flowcharts and sequence diagrams drawn as
+      text, for `Elui.Widgets.Mermaid` and Markdown's ` ```mermaid ` blocks
 
   ## Widgets
 
@@ -37,8 +39,8 @@ defmodule Elui do
   `Elui.Widgets.Scrollbar`, `Elui.Widgets.Clear`,
   `Elui.Widgets.ToggleGrid`, `Elui.Widgets.WeekGrid`,
   `Elui.Widgets.Modal`, `Elui.Widgets.TextInput`, `Elui.Widgets.TextArea`,
-  `Elui.Widgets.FilterableSelect`, `Elui.Widgets.Tree`, and
-  `Elui.Widgets.Markdown`.
+  `Elui.Widgets.FilterableSelect`, `Elui.Widgets.Tree`,
+  `Elui.Widgets.Markdown`, and `Elui.Widgets.Mermaid`.
 
   ## Hello world
 

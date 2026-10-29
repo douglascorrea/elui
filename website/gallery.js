@@ -132,6 +132,18 @@ const exampleCatalog = [
     description: "Selection, first-to-last navigation, highlighting, and scrollbar state."
   },
   {
+    name: "markdown",
+    title: "Markdown Viewer",
+    category: "widgets",
+    description: "Headings, lists, tables, code, and Mermaid diagrams, word-wrapped and scrolled."
+  },
+  {
+    name: "mermaid",
+    title: "Mermaid Diagrams",
+    category: "widgets",
+    description: "Flowcharts and sequence diagrams laid out from Mermaid source, with no JavaScript."
+  },
+  {
     name: "modifiers",
     title: "Style Modifiers",
     category: "widgets",

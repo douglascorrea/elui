@@ -201,6 +201,25 @@ defmodule EluiExampleRecorder do
         ],
         poster: 2.8
       ),
+      example(
+        "markdown",
+        [sleep: 3_500, type: "u", sleep: 1_800, type: "u", sleep: 2_000],
+        args: ["website/videos/markdown_tour.md"],
+        poster: 3.0
+      ),
+      example(
+        "mermaid",
+        [
+          sleep: 2_600,
+          tab: 1,
+          sleep: 2_800,
+          tab: 1,
+          sleep: 2_800,
+          type: "a",
+          sleep: 2_000
+        ],
+        poster: 4.0
+      ),
       example("minimal", [sleep: 5_000], poster: 3.0),
       example(
         "modifiers",
@@ -286,6 +305,7 @@ defmodule EluiExampleRecorder do
     %{
       name: name,
       actions: actions,
+      args: Keyword.get(opts, :args, []),
       env: Keyword.get(opts, :env, %{}),
       peer: Keyword.get(opts, :peer, false),
       poster: Keyword.get(opts, :poster, 2.0),
@@ -393,7 +413,7 @@ defmodule EluiExampleRecorder do
           ~s(Type "clear"),
           "Enter",
           "Sleep 100ms",
-          ~s(Type "mix run examples/#{example.name}.exs"),
+          ~s(Type "#{Enum.join(["mix run examples/#{example.name}.exs" | example.args], " ")}"),
           "Enter",
           "Sleep #{example.startup}ms",
           "Show",
